@@ -1,0 +1,15 @@
+DROP TABLE main.clinics;
+DROP TABLE main.orders;
+DROP TABLE inventory.item_movements;
+DROP TABLE inventory.transactions;
+DROP TABLE inventory.materials;
+DROP TABLE inventory.categories;
+DROP TABLE inventory.stores;
+DROP TABLE main.studies;
+DROP TABLE main.procedures;
+DROP TABLE main.patients;
+DROP TABLE main.users;
+DROP TABLE main.user_roles;
+DROP TABLE main.setupdata;
+DROP SCHEMA main;
+DROP SCHEMA inventory;
