@@ -447,10 +447,6 @@ CREATE TABLE
         last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
--- CREATE SCHEMA IF NOT EXISTS clinics;
--- CREATE TABLE IF NOT EXISTS clinics.clinic(
---     ind SERIAL,
--- )
 -- CREATE TRIGGER to calculate age for each order after inseting order in radiology;
 -- CREATE TRIGGER to calculate age for each order after inseting order in lab;
 -- CREATE TRIGGER to calculate stock for each material after inseting/updating in item_movements;
