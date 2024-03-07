@@ -27,6 +27,7 @@ export type Order = {
 	report_status?: string;
 	critical?: boolean;
 	radiation_dose?: number;
+	study_instance_uid?: string;
 	last_update?: string;
 	updated_by?: string;
 	referring_phys?: string;

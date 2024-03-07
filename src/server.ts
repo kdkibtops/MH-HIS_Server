@@ -202,10 +202,10 @@ authServer.use(mainRoutes.authentication, authenticationRoutes);
 
 radAssitApp.use(mainRoutes.database, databaseManipulation);
 
-// setInterval(() => {
-// 	console.log('Updating Database');
-// 	updateDB();
-// }, 5000);
+setInterval(() => {
+	console.log('Updating Database');
+	updateDB();
+}, 5000);
 
 // Should update the localConfig.json file to the current configuration from the server
 updateLoacalConfigJSON();

@@ -3,6 +3,8 @@ import sqlite3, { OPEN_CREATE } from 'sqlite3';
 import { open } from 'sqlite';
 import client from './database';
 import path from 'path';
+import { rm } from 'fs';
+import { DICOMSTORAGEFOLDER } from './DICOM/DICOMServer';
 
 const updateDB = async () => {
 	try {
@@ -15,7 +17,7 @@ const updateDB = async () => {
 			),
 			driver: sqlite3.cached.Database,
 		});
-		const SQL = `SELECT * FROM change_log WHERE proccessed = 0`;
+		const SQL = `SELECT * FROM change_log WHERE processed = 0`;
 		const result = await db.all(SQL);
 		console.log(result);
 		if (result.length > 0) {
@@ -26,7 +28,7 @@ const updateDB = async () => {
 				let series;
 				const expectedModalities = ['CT', 'MR', 'US', 'CR', 'DR', 'XA'];
 				await db.each(
-					`SELECT * FROM patient WHERE id = ${row.row_id}`,
+					`SELECT * FROM patient WHERE id = ${row.patient_id}`,
 					(err, result: { PatientName: string }) => {
 						if (err) {
 							console.error(err);
@@ -46,12 +48,15 @@ const updateDB = async () => {
 					}
 				);
 				series = await db.all(
-					`SELECT * FROM series WHERE referenceID = '${row.row_id}'`
+					`SELECT * FROM series WHERE referenceID = '${row.study_id}'`
 				);
+				console.log(`SERIES FOUND ${series.length}`);
 				const numSeries = series.length;
-				const modality = series.filter((s) =>
-					expectedModalities.includes(s['Modality'])
-				)[0]['Modality'];
+				const modality = series.length
+					? series.filter((s) => expectedModalities.includes(s['Modality']))[0][
+							'Modality'
+					  ]
+					: 'Undefined Modality';
 				console.log(modality);
 				const DoseReport = series.filter((s) => s['Modality'] === 'SR').length
 					? 123
@@ -91,12 +96,20 @@ const updateDB = async () => {
 							? 'Female'
 							: 'Undefined'
 					}`;
-					const createStudySQL = `INSERT INTO main.studies 
-						(study_id, study_name,modality,updated_by) 
-						VALUES (LOWER('${StudyID}'), '${order['StudyDescription']}','${
-						modality ? modality : 'Undefined'
-					}', 'admin')
-						ON CONFLICT DO NOTHING`;
+
+					const checkStudyFoundSQL = `SELECT * FROM main.studies WHERE LOWER(study_name)=LOWER('${order['StudyDescription']}')`;
+					console.log(checkStudyFoundSQL);
+					const studyFound = (await conn.query(checkStudyFoundSQL)).rowCount;
+					if (studyFound === 0 || order['StudyDescription'] === null) {
+						const createStudySQL = `INSERT INTO main.studies 
+							(study_id, study_name,modality,updated_by) 
+							VALUES (LOWER('${modality}${StudyID}'), '${order['StudyDescription']}','${
+							modality ? modality : 'Undefined'
+						}', 'admin')
+							ON CONFLICT DO NOTHING`;
+						console.log(createStudySQL);
+						await conn.query(createStudySQL);
+					}
 
 					const createPatientSQL = `INSERT INTO main.patients 
 						(patient_name, mrn, dob,age,gender,updated_by) 
@@ -105,10 +118,8 @@ const updateDB = async () => {
 							' '
 						)}',LOWER('${PatientID}'),'${dob}','${age}' ,'${gender}','admin')
 						ON CONFLICT DO NOTHING`;
-
-					await conn.query(createStudySQL);
+					console.log(createPatientSQL);
 					await conn.query(createPatientSQL);
-
 					series.forEach(async (ser) => {
 						const { Modality } = ser;
 						const radiationDose =
@@ -120,7 +131,7 @@ const updateDB = async () => {
 								}) 
 								VALUES(LOWER('${
 									AccessionNumber ? AccessionNumber : `${StudyDate}${StudyTime}`
-								}'),LOWER('${PatientID}'),LOWER('${StudyID}'),'${StudyDate}','Completed','Pending','admin','${StudyInstanceUID}', ${Number(
+								}'),LOWER('${PatientID}'),LOWER('${modality}${StudyID}'),'${StudyDate}','Completed','Pending','admin','${StudyInstanceUID}', ${Number(
 							numSeries
 						)}${radiationDose[1] === '' ? '' : ',' + radiationDose[1]})
 								ON CONFLICT ON CONSTRAINT orders_pkey DO 
@@ -134,12 +145,17 @@ const updateDB = async () => {
 						await conn.query(createOrderSQL);
 					});
 					conn.release();
-					await db.run(
-						`UPDATE change_log SET proccessed = true , last_update = (datetime('now','localtime')) WHERE row_id = ${row.row_id}`
+					await db.each(
+						`UPDATE change_log SET processed = true , last_update = (datetime('now','localtime')) WHERE id = ${row.id}`,
+						() => console.log('update succeeded')
+					);
+				} else {
+					db.each(
+						`UPDATE change_log SET processed = true , last_update = (datetime('now','localtime')) WHERE id = ${row.id}`,
+						() => console.log('update succeeded')
 					);
 				}
 			});
-			// await db.close();
 		}
 	} catch (error) {
 		console.error('Error');
@@ -147,8 +163,7 @@ const updateDB = async () => {
 	}
 };
 
-/**Still under development */
-export const deleteStudyMySQL = async (accessionNumber: string) => {
+export const deleteStudyMySQL = async (StudyInstanceUID: string) => {
 	try {
 		const db = await open({
 			filename: path.join(
@@ -163,7 +178,7 @@ export const deleteStudyMySQL = async (accessionNumber: string) => {
 		let seriesID;
 		let imageID;
 
-		const selectStudyID = `SELECT id FROM study WHERE AccessionNumber='${accessionNumber}'`;
+		const selectStudyID = `SELECT id FROM study WHERE StudyInstanceUID='${StudyInstanceUID}'`;
 		await db.each(selectStudyID, (err, result: { id: string }) => {
 			if (err) console.error(err);
 			if (!err) {
@@ -173,26 +188,31 @@ export const deleteStudyMySQL = async (accessionNumber: string) => {
 		});
 		console.log(studyID);
 		const selectSeriesID = `SELECT id FROM Series WHERE referenceId='${studyID}'`;
-		await db.each(selectStudyID, (err, result: { id: string }) => {
-			if (err) console.error(err);
-			if (!err) {
-				seriesID = result.id;
-				console.log(result);
-			}
+		const x = await db.all(selectSeriesID);
+		if (x.length > 0) {
+			x.forEach((ser) => {
+				const deleteImage = `DELETE FROM image WHERE referenceId= '${ser.id}';`;
+				const deleteSeries = `DELETE FROM series WHERE id= '${ser.id}';`;
+				console.log(deleteImage);
+				console.log(deleteSeries);
+				db.each(deleteImage, () => console.log('deleted images')).then(() => {
+					console.log(deleteSeries);
+					db.each(deleteSeries, () => console.log('deleted series'));
+				});
+			});
+		}
+		const deleteStudy = `DELETE FROM study WHERE id= '${studyID}';`;
+		db.run(deleteStudy).then(() => {
+			console.log('Deleting folder');
+			rm(
+				path.join(DICOMSTORAGEFOLDER, StudyInstanceUID),
+				{ recursive: true },
+				(err) => {
+					console.log(err);
+				}
+			);
 		});
-		console.log(seriesID);
-		const deleteSQL = `
-		DELETE FROM image WHERE referenceId= '${seriesID}';
-		DELETE FROM series WHERE referenceId= '${studyID}';
-		DELETE FROM study WHERE id= '${studyID}';
-		`;
-		await db.each(deleteSQL, (err, result: { id: string }) => {
-			if (err) console.error(err);
-			if (!err) {
-				seriesID = result.id;
-				console.log(result);
-			}
-		});
+
 		return true;
 	} catch (err) {
 		console.error(err);

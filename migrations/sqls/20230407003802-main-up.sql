@@ -160,55 +160,55 @@ CREATE TABLE "inventory"."item_movements" (
 );
 
 
-ALTER TABLE "main"."orders" ADD FOREIGN KEY ("mrn") REFERENCES "main"."patients" ("mrn" )ON UPDATE CASCADE;
+ALTER TABLE "main"."orders" ADD FOREIGN KEY ("mrn") REFERENCES "main"."patients" ("mrn" )ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."orders" ADD FOREIGN KEY ("study_id") REFERENCES "main"."studies" ("study_id") ON UPDATE CASCADE;
+ALTER TABLE "main"."orders" ADD FOREIGN KEY ("study_id") REFERENCES "main"."studies" ("study_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."orders" ADD FOREIGN KEY ("radiologist") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."orders" ADD FOREIGN KEY ("radiologist") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."users" ADD FOREIGN KEY ("user_role") REFERENCES "main"."user_roles" ("role_id") ON UPDATE CASCADE;
+ALTER TABLE "main"."users" ADD FOREIGN KEY ("user_role") REFERENCES "main"."user_roles" ("role_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."clinics" ADD FOREIGN KEY ("attending_physician") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."clinics" ADD FOREIGN KEY ("attending_physician") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("mrn") REFERENCES "main"."patients" ("mrn") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("mrn") REFERENCES "main"."patients" ("mrn") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("username") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("username") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("procedure_id") REFERENCES "main"."procedures" ("procedure_id") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("procedure_id") REFERENCES "main"."procedures" ("procedure_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("trasnaction_id") REFERENCES "inventory"."transactions" ("transaction_id") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("trasnaction_id") REFERENCES "inventory"."transactions" ("transaction_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("item_id") REFERENCES "inventory"."materials" ("item_id") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("item_id") REFERENCES "inventory"."materials" ("item_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("username") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("username") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."materials" ADD FOREIGN KEY ("category") REFERENCES "inventory"."categories" ("category_id") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."materials" ADD FOREIGN KEY ("category") REFERENCES "inventory"."categories" ("category_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."materials" ADD FOREIGN KEY ("store_id") REFERENCES "inventory"."stores" ("store_id") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."materials" ADD FOREIGN KEY ("store_id") REFERENCES "inventory"."stores" ("store_id") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."stores" ADD FOREIGN KEY ("trustee") REFERENCES "main"."users" ON UPDATE CASCADE;
+ALTER TABLE "inventory"."stores" ADD FOREIGN KEY ("trustee") REFERENCES "main"."users" ON UPDATE CASCADE ON DELETE CASCADE;;
 
 
 -- Below are creating foregin key for updating queries to username
-ALTER TABLE "main"."orders" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."orders" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."patients" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."patients" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."studies" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."studies" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."clinics" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."clinics" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "main"."procedures" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "main"."procedures" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."materials" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."materials" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."transactions" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."item_movements" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."categories" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."categories" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
-ALTER TABLE "inventory"."stores" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE;
+ALTER TABLE "inventory"."stores" ADD FOREIGN KEY ("updated_by") REFERENCES "main"."users" ("username") ON UPDATE CASCADE ON DELETE CASCADE;;
 
 CREATE UNIQUE INDEX users_index ON "main"."users" ("ind");
 

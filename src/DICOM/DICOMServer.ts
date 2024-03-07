@@ -16,9 +16,12 @@ import {
 	parseOptions,
 } from 'dicom-dimse-native';
 import path from 'path';
-const folderPath = path.join(__dirname, '../../application_files/dicom/');
-if (!existsSync(folderPath)) {
-	mkdirSync(folderPath, { recursive: true });
+export const DICOMSTORAGEFOLDER = path.join(
+	__dirname,
+	'../../application_files/dicom/'
+);
+if (!existsSync(DICOMSTORAGEFOLDER)) {
+	mkdirSync(DICOMSTORAGEFOLDER, { recursive: true });
 }
 const allOptions = {
 	peers: {
@@ -58,7 +61,7 @@ const allOptions = {
 			port: 9999,
 		},
 	},
-	storagePath: folderPath,
+	storagePath: DICOMSTORAGEFOLDER,
 	verbose: false,
 };
 // Options for recieving and storing studies and query on this server

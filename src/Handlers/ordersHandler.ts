@@ -26,7 +26,7 @@ import {
 	sendSuccessfulResponse,
 } from '../ResponseHandler/SuccessfulResponse';
 import { sendServerError } from '../ResponseHandler/ServerError';
-import { LocalAConfig } from '../config/LocalConfiguration';
+import { LocalAConfig, serviceStatus } from '../config/LocalConfiguration';
 import {
 	ValidateObjectPresentInRequestBody,
 	ValidatePatientPresent,
@@ -491,8 +491,16 @@ async function deleteOldOrder(req: Request, res: Response) {
 					);
 				});
 				/**Need further work to delete from MY SQL */
-				const x = await deleteStudyMySQL(order.order_id);
-				console.log(x);
+				console.log(`Now deleting mysql entry`);
+				if (orderToDelete.feedback === serviceStatus.success) {
+					console.log(
+						`Study Instance UID: ${orderToDelete.data[0]['study_instance_uid']}`
+					);
+					const x = await deleteStudyMySQL(
+						orderToDelete.data[0].study_instance_uid as string
+					);
+					console.log(`MYSQL delete status:`);
+				}
 
 				if (orderToDelete.feedback === LocalAConfig.serviceStatus.success) {
 					return sendSuccessfulResponse(res, newToken, [

@@ -38,9 +38,19 @@ DROP TABLE IF EXISTS radiology.order;
 
 DROP TABLE IF EXISTS radiology.study;
 
+DROP TABLE IF EXISTS radiology.study_preparation;
+
 DROP SCHEMA IF EXISTS radiology;
 
 DROP TABLE IF EXISTS patients.paperwork;
+
+DROP TABLE IF EXISTS patients.intervention;
+
+DROP TABLE IF EXISTS patients.laboratory;
+
+DROP TABLE IF EXISTS patients.imaging;
+
+DROP TABLE IF EXISTS patients.investigation;
 
 DROP TABLE IF EXISTS patients.contact;
 
