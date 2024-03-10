@@ -8,6 +8,7 @@ import {
 	DBTablesMap,
 	JSONData,
 	LocalAConfig,
+	UID_Columns,
 	serviceStatus,
 } from '../config/LocalConfiguration';
 import { getDateInEgypt } from '../config/getDate';
@@ -22,12 +23,12 @@ function createInsertFunction(tableName: string): Function {
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
-				enteries: number;
+				entCount: number;
 				data: dataTypes;
 		  }
 		| {
 				feedback: serviceStatus.failed;
-				enteries: 0;
+				entCount: 0;
 				data: Error;
 		  }
 	> => {
@@ -77,6 +78,9 @@ function createInsertFunction(tableName: string): Function {
 				columnNames.forEach((col, index) => {
 					if (JSONData.includes(col)) {
 						values[index] = JSON.stringify(values[index]);
+						// convert all UID columns to lower case before inserting
+					} else if (UID_Columns.includes(col)) {
+						values[index] = values[index].toLowerCase();
 					}
 				});
 				columnNames.push('last_update');
@@ -92,7 +96,7 @@ function createInsertFunction(tableName: string): Function {
 				conn.release();
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: result.rowCount,
 					data: result.rows,
 				};
 			} else {
@@ -101,7 +105,7 @@ function createInsertFunction(tableName: string): Function {
 					console.error(`Can't create insert function for ${tableName}`);
 					return {
 						feedback: LocalAConfig.serviceStatus.failed,
-						enteries: 0,
+						entCount: 0,
 						data: new Error(`Can't create insert function for ${tableName}`),
 					};
 				})();
@@ -111,14 +115,14 @@ function createInsertFunction(tableName: string): Function {
 				callBackErr(error as Error);
 				return {
 					feedback: LocalAConfig.serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			} else {
 				console.log(`Error: ${error}`);
 				return {
 					feedback: LocalAConfig.serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			}

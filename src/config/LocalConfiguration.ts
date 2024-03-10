@@ -114,7 +114,6 @@ export const LocalAConfig = {
 		studies: '/studies',
 		authentication: '/auth',
 		database: '/db',
-		// database2: '/db',
 		getConfig: '/getconfig',
 		files: '/files',
 		initalData: '/initial',
@@ -168,13 +167,22 @@ export const LocalAConfig = {
 		},
 		{
 			icon: 'fa-solid fa-syringe fa-fw fa-2x',
-			path: 'intervention-radiology',
+			path: 'intervention_radiology',
 			text: 'IR',
 		},
-		{ icon: 'fa-solid fa-user-tie fa-fw fa-2x', path: 'users', text: 'Users' },
+		{
+			icon: 'fa-solid fa-user-tie fa-fw fa-2x',
+			path: 'users',
+			text: 'Users',
+		},
+		{
+			icon: 'fa-solid fa-code fa-fw fa-2x',
+			path: 'test',
+			text: 'Test',
+		},
 		{
 			icon: 'fa-solid fa-database fa-fw fa-2x',
-			path: 'update-database',
+			path: 'update_database',
 			text: 'Bulk upload',
 		},
 		{

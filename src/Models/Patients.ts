@@ -59,12 +59,12 @@ export async function insertPatient(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -78,12 +78,12 @@ export async function showAllPatientsOnCriteria(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -97,12 +97,12 @@ export async function updatePatient(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -116,12 +116,12 @@ export async function deletePatient(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -135,13 +135,13 @@ export async function searchPatients(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[];
 			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -155,13 +155,13 @@ export async function showAllPatients(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[];
 			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -179,12 +179,12 @@ export async function showAllPatients(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Patient[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -214,7 +214,7 @@ export async function showAllPatients(
 // 		conn.release();
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: result.rows,
 // 		};
 // 	} catch (error) {
@@ -222,14 +222,14 @@ export async function showAllPatients(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}
@@ -242,12 +242,12 @@ export async function showAllPatients(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Patient[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -269,7 +269,7 @@ export async function showAllPatients(
 // 		conn.release();
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: result.rows,
 // 		};
 // 	} catch (error) {
@@ -277,14 +277,14 @@ export async function showAllPatients(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}
@@ -297,12 +297,12 @@ export async function showAllPatients(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Patient[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -333,7 +333,7 @@ export async function showAllPatients(
 // 		conn.release();
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: result.rows,
 // 		};
 // 	} catch (error) {
@@ -341,14 +341,14 @@ export async function showAllPatients(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}
@@ -361,12 +361,12 @@ export async function showAllPatients(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Patient[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -379,7 +379,7 @@ export async function showAllPatients(
 // 		if (limited) {
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.success,
-// 				enteries: result.rowCount,
+// 				entCount: result.rowCount,
 // 				data: result.rows.map((patient) => {
 // 					return {
 // 						patient_name: patient.patient_name,
@@ -390,7 +390,7 @@ export async function showAllPatients(
 // 		} else {
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.success,
-// 				enteries: result.rowCount,
+// 				entCount: result.rowCount,
 // 				data: result.rows,
 // 			};
 // 		}
@@ -399,14 +399,14 @@ export async function showAllPatients(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}
@@ -419,12 +419,12 @@ export async function showAllPatients(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Patient[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -435,7 +435,7 @@ export async function showAllPatients(
 // 		conn.release();
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: result.rows,
 // 		};
 // 	} catch (error) {
@@ -443,14 +443,14 @@ export async function showAllPatients(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}
@@ -463,12 +463,12 @@ export async function searcFilterhPatients(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Patient[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -482,7 +482,7 @@ export async function searcFilterhPatients(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -490,14 +490,14 @@ export async function searcFilterhPatients(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -510,12 +510,12 @@ export async function searcFilterhPatients(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Patient[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -587,7 +587,7 @@ export async function searcFilterhPatients(
 // 		});
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: updatedArr,
 // 		};
 // 	} catch (error) {
@@ -595,14 +595,14 @@ export async function searcFilterhPatients(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}

@@ -29,7 +29,8 @@ const eventsLogFile = path.join(
 export const sendSuccessfulResponse = (
 	res: Response,
 	accessToken: string,
-	data: dataTypes
+	data: dataTypes,
+	entCount: number
 ) => {
 	try {
 		if (!existsSync(eventsLogFolder)) {
@@ -60,21 +61,13 @@ Data retrieved: Successful
 		});
 		const response: ResponseBodyMain = {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: data.length,
+			enteriesCount: entCount ? entCount : data.length,
 			data: data,
 			accessToken: accessToken,
 			successful: true,
 			action: LocalAConfig.serviceAction.success,
 		};
 		res.status(200).json(response);
-		// res.status(200).json({
-		// 	...data,
-		// 	accessToken: accessToken,
-		// 	action: data['action' as keyof typeof data]
-		// 		? data['action' as keyof typeof data]
-		// 		: LocalAConfig.serviceAction.success,
-		// 	successful: true,
-		// });
 	} catch (error) {
 		const err = new Error(`S${error}`);
 		console.log(`Eroor in event logging: ${err}`);
@@ -125,7 +118,7 @@ Data retrieved: Successful
 		});
 		const response: ResponseBodyMain = {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: data.length,
+			enteriesCount: data.length,
 			data: data,
 			accessToken: accessToken,
 			action: LocalAConfig.serviceAction.updated,
@@ -158,15 +151,6 @@ export const sendAcceptedCreatedResponse = (
 	res: Response,
 	accessToken: string,
 	data: dataTypes
-
-	// data:
-	// 	| User[]
-	// 	| Order[]
-	// 	| Patient[]
-	// 	| Study[]
-	// 	| dbFile[]
-	// 	| Procedure[]
-	// 	| { name: string; path: string }[]
 ) => {
 	try {
 		if (!existsSync(eventsLogFolder)) {
@@ -198,21 +182,13 @@ Data retrieved: Successful
 		});
 		const response: ResponseBodyMain = {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: data.length,
+			enteriesCount: data.length,
 			data: data,
 			accessToken: accessToken,
 			action: LocalAConfig.serviceAction.created,
 			created: true,
 		};
 		res.status(201).json(response);
-		// res.status(201).json({
-		// 	...data,
-		// 	accessToken: accessToken,
-		// 	action: data['action' as keyof typeof data]
-		// 		? data['action' as keyof typeof data]
-		// 		: LocalAConfig.serviceAction.created,
-		// 	created: true,
-		// });
 	} catch (error) {
 		const err = new Error(`S${error}`);
 		console.log(`Eroor in event logging: ${err}`);
@@ -263,7 +239,7 @@ Data retrieved: Successful
 		});
 		const response: ResponseBodyMain = {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: data.length,
+			enteriesCount: data.length,
 			data: data,
 			accessToken: accessToken,
 			action: LocalAConfig.serviceAction.pending,

@@ -57,7 +57,7 @@ export type dataTypesEntry =
 // http://127.0.0.1:5858/users/getuserconfiguration
 export type ResponseBodyMain = {
 	feedback: serviceStatus;
-	enteries: number;
+	enteriesCount: number;
 	data: dataTypes;
 	accessToken: string;
 	action?: serviceAction;
@@ -73,7 +73,7 @@ export type ResponseBodyMain = {
 
 let y: ResponseBodyMain = {
 	feedback: LocalAConfig.serviceStatus.success,
-	enteries: 1,
+	enteriesCount: 1,
 	data: [
 		{
 			patient_name: 'NABIH ALI EMAM',

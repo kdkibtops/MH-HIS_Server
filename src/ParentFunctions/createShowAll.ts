@@ -10,12 +10,12 @@ function createShowAllFunction(tableName: string): Function {
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
-				enteries: number;
+				entCount: number;
 				data: dataTypes | unknown[];
 		  }
 		| {
 				feedback: serviceStatus.failed;
-				enteries: 0;
+				entCount: 0;
 				data: Error;
 		  }
 	> => {
@@ -82,7 +82,7 @@ function createShowAllFunction(tableName: string): Function {
 			if (limited) {
 				return {
 					feedback: serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: result.rowCount,
 					// create new object with the limited keys needed
 					data: result.rows.map((entry) => {
 						return limitedArr.reduce((accumulator, key) => {
@@ -93,7 +93,7 @@ function createShowAllFunction(tableName: string): Function {
 			} else {
 				return {
 					feedback: serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: result.rowCount,
 					data: result.rows,
 				};
 			}
@@ -102,14 +102,14 @@ function createShowAllFunction(tableName: string): Function {
 				callBackErr(error as Error);
 				return {
 					feedback: serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			} else {
 				console.log(`Error: ${error}`);
 				return {
 					feedback: serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			}

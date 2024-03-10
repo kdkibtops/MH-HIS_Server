@@ -27,7 +27,6 @@ async function uploadFile(req: Request, res: Response) {
 			res.json({ status: 'Failed', enteries: 0, data: [] }).status(400);
 			return;
 		}
-		// const uploadFilePath = path.join(__dirname, '../../a_store/uploads');
 		const uploadFilePath = path.join(
 			__dirname,
 			'../../application_files/orders/reports'
@@ -44,7 +43,6 @@ async function uploadFile(req: Request, res: Response) {
 			uploadDir: orderRootFolderPath,
 			multiples: true,
 			keepExtensions: true,
-
 			filename: (name, ext, part, form) => {
 				return `${name.replaceAll(' ', '_')}_${new Date()
 					.toISOString()

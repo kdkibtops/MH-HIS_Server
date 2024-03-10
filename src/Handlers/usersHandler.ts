@@ -51,7 +51,7 @@ async function insertNewUser(req: Request, res: Response) {
 			});
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries === 0
+				userPresentResponse.entCount === 0
 			) {
 				const hashedPassword = bcrypt.hashSync(
 					user.user_password as string,
@@ -78,7 +78,7 @@ async function insertNewUser(req: Request, res: Response) {
 			/**User already present return bad request and state*/
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries > 0
+				userPresentResponse.entCount > 0
 			) {
 				const err = new Error(
 					LocalAConfig.errorMessages.logMessages.userAlreadyPresentInDB
@@ -155,9 +155,12 @@ async function showAllUsersInDatabaseOnCriteria(req: Request, res: Response) {
 				allUsersInDatabaseOnCriteria.feedback ===
 				LocalAConfig.serviceStatus.success
 			) {
-				return sendSuccessfulResponse(res, newToken, [
-					...(allUsersInDatabaseOnCriteria.data as User[]),
-				]);
+				return sendSuccessfulResponse(
+					res,
+					newToken,
+					[...(allUsersInDatabaseOnCriteria.data as User[])],
+					allUsersInDatabaseOnCriteria.entCount
+				);
 			} else {
 				const error = new Error(`Can't show all users On Criteria`);
 				error.name = 'showAllUsers Error';
@@ -206,9 +209,12 @@ async function showAllUsersInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (userPresentResponse.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(userPresentResponse.data as User[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(userPresentResponse.data as User[])],
+				userPresentResponse.entCount
+			);
 		} else {
 			const error = new Error(
 				LocalAConfig.errorMessages.logMessages.canNotMessages('show all users')
@@ -260,9 +266,12 @@ async function LimitedShowAllUsersInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (userPresentResponse.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(userPresentResponse.data as User[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(userPresentResponse.data as User[])],
+				userPresentResponse.entCount
+			);
 		} else {
 			const error = new Error(
 				LocalAConfig.errorMessages.logMessages.canNotMessages('show all users')
@@ -319,10 +328,13 @@ async function showOneUser(req: Request, res: Response) {
 				);
 			});
 			if (userPresentResponse.feedback === LocalAConfig.serviceStatus.success) {
-				if (userPresentResponse.enteries > 0) {
-					return sendSuccessfulResponse(res, newToken, [
-						...(userPresentResponse.data as User[]),
-					]);
+				if (userPresentResponse.entCount > 0) {
+					return sendSuccessfulResponse(
+						res,
+						newToken,
+						[...(userPresentResponse.data as User[])],
+						userPresentResponse.entCount
+					);
 				} else {
 					const error = new Error(
 						LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(
@@ -396,7 +408,7 @@ async function updateOldUser(req: Request, res: Response) {
 			});
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries > 0
+				userPresentResponse.entCount > 0
 			) {
 				if (user.user_password) {
 					const hashedPassword = bcrypt.hashSync(
@@ -423,7 +435,7 @@ async function updateOldUser(req: Request, res: Response) {
 				}
 			} else if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries === 0
+				userPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(
@@ -500,7 +512,7 @@ async function deleteOldUser(req: Request, res: Response) {
 			});
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries > 0
+				userPresentResponse.entCount > 0
 			) {
 				const userToDelete = await deleteUser(reqBody.users, (err: Error) => {
 					sendBadRequestResponse(
@@ -514,13 +526,16 @@ async function deleteOldUser(req: Request, res: Response) {
 					);
 				});
 				if (userToDelete.feedback === LocalAConfig.serviceStatus.success) {
-					return sendSuccessfulResponse(res, newToken, [
-						...(userToDelete.data as User[]),
-					]);
+					return sendSuccessfulResponse(
+						res,
+						newToken,
+						[...(userToDelete.data as User[])],
+						userToDelete.entCount
+					);
 				}
 			} else if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries === 0
+				userPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(
@@ -596,7 +611,12 @@ async function queryUsers(req: Request, res: Response) {
 					err
 				);
 			});
-			sendSuccessfulResponse(res, newToken, [...(data.data as User[])]);
+			sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(data.data as User[])],
+				data.entCount
+			);
 		}
 	} catch (error) {
 		const err = error as Error;
@@ -636,7 +656,7 @@ const updateUserConfiguration = async (req: Request, res: Response) => {
 			});
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries > 0
+				userPresentResponse.entCount > 0
 			) {
 				const userToUpdate = await updateUser(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -656,7 +676,7 @@ const updateUserConfiguration = async (req: Request, res: Response) => {
 				}
 			} else if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries === 0
+				userPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(
@@ -728,7 +748,7 @@ const getUserConfiguration = async (req: Request, res: Response) => {
 			});
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries > 0
+				userPresentResponse.entCount > 0
 			) {
 				const data = await searchUsers(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -748,7 +768,7 @@ const getUserConfiguration = async (req: Request, res: Response) => {
 				}
 			} else if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.enteries === 0
+				userPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(

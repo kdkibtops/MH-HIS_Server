@@ -40,7 +40,7 @@ export const ValidateUserPresent = async (
 				);
 			}
 		);
-		if (userPresent.enteries === 0) {
+		if (userPresent.entCount === 0) {
 			const err = new Error(
 				LocalAConfig.errorMessages.logMessages.constraintNotFound.userNotFound
 			);
@@ -87,7 +87,7 @@ export const ValidatePatientPresent = async (
 				);
 			}
 		);
-		if (userPresent.enteries === 0) {
+		if (userPresent.entCount === 0) {
 			const err = new Error(
 				LocalAConfig.errorMessages.logMessages.constraintNotFound.patientNotFound
 			);
@@ -134,7 +134,7 @@ export const ValidateStudyPresent = async (
 				);
 			}
 		);
-		if (userPresent.enteries === 0) {
+		if (userPresent.entCount === 0) {
 			const err = new Error(
 				LocalAConfig.errorMessages.logMessages.constraintNotFound.studyNotFound
 			);
@@ -224,7 +224,7 @@ export const ValidateObjectPresentInRequestBody = (
 // 				);
 // 			}
 // 		);
-// 		if (userPresent.enteries === 0) {
+// 		if (userPresent.entCount === 0) {
 // 			const err = new Error(
 // 				LocalAConfig.errorMessages.logMessages.constraintNotFound.studyNotFound
 // 			);

@@ -29,7 +29,12 @@ const DBConnectionTest = async (
 		const testResult = await testDBConncetion();
 		if (testResult.status === 'Connected') {
 			console.log(`Front end db connection test: ${testResult}`);
-			sendSuccessfulResponse(res, '', [testResult as dbConnectionTestResult]);
+			sendSuccessfulResponse(
+				res,
+				'',
+				[testResult as dbConnectionTestResult],
+				1
+			);
 		}
 		if (testResult.status === 'Failed') {
 			const err: Error = {
@@ -178,7 +183,7 @@ filesServer.use(
 );
 filesServer.listen(filesServerPort, startFileServer);
 const getAppConfig = async (req: express.Request, res: express.Response) => {
-	sendSuccessfulResponse(res, '', [{ username: 'this is the app config' }]);
+	sendSuccessfulResponse(res, '', [{ username: 'this is the app config' }], 1);
 };
 //Main Routes
 const mainRoutes = LocalAConfig.mainRoutes;
@@ -202,10 +207,10 @@ authServer.use(mainRoutes.authentication, authenticationRoutes);
 
 radAssitApp.use(mainRoutes.database, databaseManipulation);
 
-setInterval(() => {
-	console.log('Updating Database');
-	updateDB();
-}, 5000);
+// setInterval(() => {
+// 	console.log('Updating Database');
+// 	updateDB();
+// }, 5000);
 
 // Should update the localConfig.json file to the current configuration from the server
 updateLoacalConfigJSON();

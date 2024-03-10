@@ -1,3 +1,4 @@
+import { stringMatch } from './../config/types';
 import {
 	DBTablesMap,
 	LocalAConfig,
@@ -54,12 +55,12 @@ export async function insertUser(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -73,12 +74,12 @@ export async function showAllUsersOnCriteria(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -92,12 +93,12 @@ export async function updateUser(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -111,12 +112,12 @@ export async function deleteUser(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -130,13 +131,13 @@ export async function showAllUsers(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[];
 			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -150,18 +151,18 @@ export async function searchUsers(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
 	console.log(`Using the new fucntion to search orders`);
 	const func = createSearchFunction(`${tableName}`);
-	return func(reqBody.users, callBackErr);
+	return func(reqBody.users, callBackErr, 'anyMatch');
 }
 
 /**End of finished parent functions */
@@ -173,12 +174,12 @@ export async function insertUser_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -207,7 +208,7 @@ export async function insertUser_(
 		delete createduser.user_password;
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: [createduser],
 		};
 	} catch (error) {
@@ -215,14 +216,14 @@ export async function insertUser_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -235,12 +236,12 @@ export async function searchUsers_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -314,7 +315,7 @@ export async function searchUsers_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: rowCount,
+			entCount: rowCount,
 			data: rows,
 		};
 	} catch (error) {
@@ -322,14 +323,14 @@ export async function searchUsers_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -342,12 +343,12 @@ export async function updateUser_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -381,7 +382,7 @@ export async function updateUser_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: [updateduser],
 		};
 	} catch (error) {
@@ -389,14 +390,14 @@ export async function updateUser_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -409,12 +410,12 @@ export async function showAllUsers_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -434,7 +435,7 @@ export async function showAllUsers_(
 		if (limited) {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				enteries: result.rowCount,
+				entCount: result.rowCount,
 				data: result.rows.map((user) => {
 					return {
 						user_id: user.user_id,
@@ -448,7 +449,7 @@ export async function showAllUsers_(
 		} else {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				enteries: result.rowCount,
+				entCount: result.rowCount,
 				data: result.rows,
 			};
 		}
@@ -458,14 +459,14 @@ export async function showAllUsers_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -478,12 +479,12 @@ export async function deleteUser_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -507,7 +508,7 @@ export async function deleteUser_(
 		result.rows.forEach((e) => delete e.user_password);
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -515,14 +516,14 @@ export async function deleteUser_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -535,12 +536,12 @@ export async function searcFilterhUsers(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: User[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -556,7 +557,7 @@ export async function searcFilterhUsers(
 		result.rows.forEach((e) => delete e.user_password);
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -564,14 +565,14 @@ export async function searcFilterhUsers(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -584,12 +585,12 @@ export async function searcFilterhUsers(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: User[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -676,7 +677,7 @@ export async function searcFilterhUsers(
 // 		});
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: updatedArr,
 // 		};
 // 	} catch (error) {
@@ -684,14 +685,14 @@ export async function searcFilterhUsers(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}

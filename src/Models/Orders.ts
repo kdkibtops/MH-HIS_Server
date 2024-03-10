@@ -22,7 +22,7 @@ export type Order = {
 	study_id: string;
 	o_date: string;
 	o_status: string;
-	report?: string;
+	report?: string[];
 	radiologist?: string;
 	report_status?: string;
 	critical?: boolean;
@@ -67,12 +67,12 @@ export async function showAllOrdersOnCriteria(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -86,12 +86,12 @@ export async function insertOrder(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -105,12 +105,12 @@ export async function updateOrder(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -124,12 +124,12 @@ export async function deleteOrder(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -143,13 +143,12 @@ export async function showAllOrders(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[];
-			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -163,12 +162,12 @@ export async function searchOrders(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -186,12 +185,12 @@ export async function insertOrder_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -222,7 +221,7 @@ export async function insertOrder_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -230,14 +229,14 @@ export async function insertOrder_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -251,12 +250,12 @@ export async function searchOrders_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -278,7 +277,7 @@ export async function searchOrders_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -286,14 +285,14 @@ export async function searchOrders_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -307,12 +306,12 @@ export async function updateOrder_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -344,7 +343,7 @@ export async function updateOrder_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -352,14 +351,14 @@ export async function updateOrder_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -373,12 +372,12 @@ export async function showAllOrders_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -397,7 +396,7 @@ export async function showAllOrders_(
 		// const final = limited
 		// 	? {
 		// 			feedback: LocalAConfig.serviceStatus.success,
-		// 			enteries: result.rowCount,
+		// 			entCount: result.rowCount,
 		// 			data: result.rows.map((order) => {
 		// 				return {
 		// 					order_id: order.order_id,
@@ -407,14 +406,14 @@ export async function showAllOrders_(
 		// 	  }
 		// 	: {
 		// 			feedback: LocalAConfig.serviceStatus.success,
-		// 			enteries: result.rowCount,
+		// 			entCount: result.rowCount,
 		// 			data: result.rows,
 		// 	  };
 		// return final;
 		if (limited) {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				enteries: result.rowCount,
+				entCount: result.rowCount,
 				data: result.rows.map((order) => {
 					return {
 						order_id: order.order_id,
@@ -425,7 +424,7 @@ export async function showAllOrders_(
 		} else {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				enteries: result.rowCount,
+				entCount: result.rowCount,
 				data: result.rows,
 			};
 		}
@@ -434,14 +433,14 @@ export async function showAllOrders_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -455,12 +454,12 @@ export async function deleteOrder_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -475,7 +474,7 @@ export async function deleteOrder_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -483,14 +482,14 @@ export async function deleteOrder_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -504,12 +503,12 @@ export async function searcFilterhOrders(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Order[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -523,7 +522,7 @@ export async function searcFilterhOrders(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -531,113 +530,16 @@ export async function searcFilterhOrders(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
 	}
 }
-
-/** Returns all orders in the database*/
-
-// export async function showAllOrdersOnCriteria_(
-// 	criteria: SEARCHCRITERIA,
-// 	callBackErr?: Function
-// ): Promise<
-// 	| {
-// 			feedback: serviceStatus.success;
-// 			enteries: number;
-// 			data: Order[] | unknown[];
-// 	  }
-// 	| {
-// 			feedback: serviceStatus.failed;
-// 			enteries: 0;
-// 			data: Error;
-// 	  }
-// > {
-// 	try {
-// 		let SQL = sqlQueries.createSQLshowAll(
-// 			'main.orders',
-// 			[
-// 				'main.orders.*',
-// 				'main.orders.ind',
-// 				'main.patients.*',
-// 				'main.studies.study_id',
-// 				'main.studies.study_name',
-// 				'main.studies.arabic_name',
-// 				'main.studies.modality',
-// 				'main.studies.price',
-// 			],
-// 			undefined,
-// 			[null, 'orders_ind', null, null, null, null, null, null]
-// 		);
-// 		SQL += `
-// LEFT JOIN main.patients
-// ON main.patients.mrn = main.orders.mrn
-// `;
-// 		SQL += `LEFT JOIN main.studies
-// ON main.studies.study_id = main.orders.study_id
-// `;
-// 		// If criteria has lastEntryInd this means that this fetch is a continuation of previous request so will start with the last entry ind
-// 		// Becasuse order are orderd in descending order according to the ind so I am using less than operator instead of greater than
-// 		SQL += criteria.lastEntryInd
-// 			? `WHERE main.orders.ind< ${criteria.lastEntryInd}
-// `
-// 			: '';
-
-// 		const filt =
-// 			criteria.otherFilters && criteria.otherFilters.filter((f) => f.checked);
-// 		if (filt) {
-// 			addFiltersSql(filt, criteria.lastEntryInd)?.forEach(
-// 				(sql) => (SQL += sql)
-// 			);
-// 		}
-
-// 		SQL += `ORDER BY orders.ind DESC
-// `;
-// 		if (criteria.LIMIT) {
-// 			SQL += `LIMIT ${criteria.LIMIT} `;
-// 		}
-
-// 		const newSQL = (SQL.split('FROM')[0] +=
-// 			`,main.studies.updated_by AS study_updated_by FROM` +
-// 			SQL.split('FROM')[1]);
-
-// 		console.log(newSQL);
-// 		const conn = await client.connect();
-// 		const result = await conn.query(newSQL);
-
-// 		conn.release();
-// 		const updatedArr = result.rows.map((r) => {
-// 			return { ...r, ind: r.orders_ind };
-// 		});
-// 		return {
-// 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
-// 			data: updatedArr,
-// 		};
-// 	} catch (error) {
-// 		if (callBackErr) {
-// 			callBackErr(error as Error);
-// 			return {
-// 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
-// 				data: error as Error,
-// 			};
-// 		} else {
-// 			console.log(`Error: ${error}`);
-// 			return {
-// 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
-// 				data: error as Error,
-// 			};
-// 		}
-// 	}
-// }

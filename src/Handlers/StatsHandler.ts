@@ -74,7 +74,12 @@ const getStatsHandler = async (req: Request, res: Response): Promise<void> => {
 			);
 
 			if (stats.feedback === LocalAConfig.serviceStatus.success) {
-				return sendSuccessfulResponse(res, newToken, [...stats.data]);
+				return sendSuccessfulResponse(
+					res,
+					newToken,
+					[...stats.data],
+					stats.entCount
+				);
 			} else {
 				const error = new Error(`Can't show all orders On Criteria`);
 				error.name = 'showAllOrders Error';

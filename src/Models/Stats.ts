@@ -85,12 +85,12 @@ export async function getStats(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Stats[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -199,7 +199,7 @@ export async function getStats(
 				}
 			});
 		}
-	
+
 		JOINObjects &&
 			JOINObjects.forEach((JOINObject) => {
 				JOINObject.use &&
@@ -216,7 +216,7 @@ export async function getStats(
 		console.log(SQL);
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: 2,
+			entCount: 2,
 			data: [],
 		};
 	} catch (error) {
@@ -225,14 +225,14 @@ export async function getStats(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}

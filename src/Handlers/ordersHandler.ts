@@ -36,6 +36,8 @@ import {
 import appConfig from '../config/appConfig.json';
 import { selectOptionsValues } from '../config/selectOption';
 import { deleteStudyMySQL } from '../syncDatabase';
+import path from 'path';
+import { existsSync, rm, rmSync } from 'fs';
 
 /** Handles isnerting a new order to the database */
 async function insertNewOrder(req: Request, res: Response) {
@@ -69,8 +71,9 @@ async function insertNewOrder(req: Request, res: Response) {
 			});
 			if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.enteries === 0
+				orderPresentResponse.entCount === 0
 			) {
+				console.log('inserting order');
 				const createdOrder = await insertOrder(reqBody, (err: Error) => {
 					sendBadRequestResponse(
 						res,
@@ -90,7 +93,7 @@ async function insertNewOrder(req: Request, res: Response) {
 			// update order data if order is already present
 			if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.enteries > 0
+				orderPresentResponse.entCount > 0
 			) {
 				const updatedOrder = await updateOrder(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -213,9 +216,12 @@ async function showAllOrdersInDatabaseOnCriteria(req: Request, res: Response) {
 				allOrdersInDatabaseOnCriteria.feedback ===
 				LocalAConfig.serviceStatus.success
 			) {
-				return sendSuccessfulResponse(res, newToken, [
-					...(allOrdersInDatabaseOnCriteria.data as Order[]),
-				]);
+				return sendSuccessfulResponse(
+					res,
+					newToken,
+					[...(allOrdersInDatabaseOnCriteria.data as Order[])],
+					allOrdersInDatabaseOnCriteria.entCount
+				);
 			} else {
 				const error = new Error(`Can't show all orders On Criteria`);
 				error.name = 'showAllOrders Error';
@@ -267,9 +273,12 @@ async function showAllOrdersInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (allOrdersInDatabase.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allOrdersInDatabase.data as Order[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allOrdersInDatabase.data as Order[])],
+				allOrdersInDatabase.entCount
+			);
 		} else {
 			const error = new Error(`Can't show all orders`);
 			error.name = 'showAllOrders Error';
@@ -320,9 +329,12 @@ async function LimitedShowAllOrdersInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (allOrdersInDatabase.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allOrdersInDatabase.data as Order[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allOrdersInDatabase.data as Order[])],
+				allOrdersInDatabase.entCount
+			);
 		} else {
 			const error = new Error(`Can't show all orders`);
 			error.name = 'showAllOrders Error';
@@ -357,6 +369,7 @@ async function updateOldOrder(req: Request, res: Response) {
 	// recieves new token from middleware and sends it back to the patient
 	const newToken = req.body.token || '';
 	try {
+		console.log('inserting order');
 		const reqBody = req.body as REQBODY;
 		const currentUser = req.body.currentUser;
 		Object.assign((req.body as REQBODY).orders, { updated_by: currentUser });
@@ -385,7 +398,7 @@ async function updateOldOrder(req: Request, res: Response) {
 			});
 			if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.enteries > 0
+				orderPresentResponse.entCount > 0
 			) {
 				const orderToUpdate = await updateOrder(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -405,7 +418,7 @@ async function updateOldOrder(req: Request, res: Response) {
 				}
 			} else if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.enteries === 0
+				orderPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					`Bad Request, Order ${order.order_id} is not found in the request database`
@@ -477,7 +490,7 @@ async function deleteOldOrder(req: Request, res: Response) {
 
 			if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.enteries > 0
+				orderPresentResponse.entCount > 0
 			) {
 				const orderToDelete = await deleteOrder(order, (err: Error) => {
 					sendBadRequestResponse(
@@ -496,20 +509,36 @@ async function deleteOldOrder(req: Request, res: Response) {
 					console.log(
 						`Study Instance UID: ${orderToDelete.data[0]['study_instance_uid']}`
 					);
-					const x = await deleteStudyMySQL(
-						orderToDelete.data[0].study_instance_uid as string
-					);
+					if (orderToDelete.data[0].study_instance_uid) {
+						const x = await deleteStudyMySQL(
+							orderToDelete.data[0].study_instance_uid as string
+						);
+					}
+					const folderPathArr = orderToDelete.data[0].report;
+					console.log(folderPathArr);
+					folderPathArr?.length &&
+						folderPathArr.forEach((filePath) => {
+							const parentFolder = path.dirname(path.join(filePath));
+							if (existsSync(parentFolder)) {
+								rm(parentFolder, { recursive: true }, () =>
+									console.log(`DELETED FOLDER '${parentFolder}'`)
+								);
+							}
+						});
 					console.log(`MYSQL delete status:`);
 				}
 
 				if (orderToDelete.feedback === LocalAConfig.serviceStatus.success) {
-					return sendSuccessfulResponse(res, newToken, [
-						...(orderToDelete.data as Order[]),
-					]);
+					return sendSuccessfulResponse(
+						res,
+						newToken,
+						[...(orderToDelete.data as Order[])],
+						orderToDelete.entCount
+					);
 				}
 			} else if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.enteries === 0
+				orderPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					`Bad Request, Order ${order.order_id} is not found in the request database`
@@ -573,7 +602,12 @@ async function queryOrders(req: Request, res: Response) {
 					err
 				);
 			});
-			sendSuccessfulResponse(res, newToken, [...(data.data as Order[])]);
+			sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(data.data as Order[])],
+				data.entCount
+			);
 		}
 	} catch (error) {
 		const err = error as Error;

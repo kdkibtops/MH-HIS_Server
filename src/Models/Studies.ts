@@ -46,12 +46,12 @@ export async function insertStudy(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -65,12 +65,12 @@ export async function showAllStudiesOnCriteria(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -84,12 +84,12 @@ export async function updateStudy(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -103,12 +103,12 @@ export async function deleteStudy(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -122,13 +122,13 @@ export async function showAllStudies(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[];
 			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -142,12 +142,12 @@ export async function searchStudies(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -164,12 +164,12 @@ export async function insertStudy_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -195,7 +195,7 @@ export async function insertStudy_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -203,14 +203,14 @@ export async function insertStudy_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -223,12 +223,12 @@ export async function searchStudies_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -249,7 +249,7 @@ export async function searchStudies_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -257,14 +257,14 @@ export async function searchStudies_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -277,12 +277,12 @@ export async function updateStudy_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -313,7 +313,7 @@ export async function updateStudy_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -321,14 +321,14 @@ export async function updateStudy_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -341,13 +341,13 @@ export async function showAllStudies_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[] | unknown[];
 			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -359,7 +359,7 @@ export async function showAllStudies_(
 		if (limited) {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				enteries: result.rowCount,
+				entCount: result.rowCount,
 				data: result.rows.map((study) => {
 					return {
 						study_id: study.study_id,
@@ -373,7 +373,7 @@ export async function showAllStudies_(
 		} else {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				enteries: result.rowCount,
+				entCount: result.rowCount,
 				data: result.rows,
 			};
 		}
@@ -382,14 +382,14 @@ export async function showAllStudies_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -402,12 +402,12 @@ export async function deleteStudy_(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -424,7 +424,7 @@ export async function deleteStudy_(
 		result.rows.forEach((e) => delete e.user_password);
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -432,14 +432,14 @@ export async function deleteStudy_(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -452,12 +452,12 @@ export async function searcFilterhStudies(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Study[] | unknown[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -472,7 +472,7 @@ export async function searcFilterhStudies(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			enteries: result.rowCount,
+			entCount: result.rowCount,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -480,14 +480,14 @@ export async function searcFilterhStudies(
 			callBackErr(error as Error);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		} else {
 			console.log(`Error: ${error}`);
 			return {
 				feedback: LocalAConfig.serviceStatus.failed,
-				enteries: 0,
+				entCount: 0,
 				data: error as Error,
 			};
 		}
@@ -500,12 +500,12 @@ export async function searcFilterhStudies(
 // ): Promise<
 // 	| {
 // 			feedback: serviceStatus.success;
-// 			enteries: number;
+// 			entCount: number;
 // 			data: Study[] | unknown[];
 // 	  }
 // 	| {
 // 			feedback: serviceStatus.failed;
-// 			enteries: 0;
+// 			entCount: 0;
 // 			data: Error;
 // 	  }
 // > {
@@ -571,7 +571,7 @@ export async function searcFilterhStudies(
 // 		});
 // 		return {
 // 			feedback: LocalAConfig.serviceStatus.success,
-// 			enteries: result.rowCount,
+// 			entCount: result.rowCount,
 // 			data: updatedArr,
 // 		};
 // 	} catch (error) {
@@ -579,14 +579,14 @@ export async function searcFilterhStudies(
 // 			callBackErr(error as Error);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		} else {
 // 			console.log(`Error: ${error}`);
 // 			return {
 // 				feedback: LocalAConfig.serviceStatus.failed,
-// 				enteries: 0,
+// 				entCount: 0,
 // 				data: error as Error,
 // 			};
 // 		}

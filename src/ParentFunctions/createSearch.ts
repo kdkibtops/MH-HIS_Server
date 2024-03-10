@@ -4,20 +4,21 @@ import { DBTablesMap, serviceStatus } from '../config/LocalConfiguration';
 import { createSQLshowOneOnly } from '../helpers/createSQLString';
 import client from '../database';
 import { SELECTSQLQUERY } from '../helpers/filtersSQL';
-import { stringORNull } from '../config/types';
+import { stringMatch, stringORNull } from '../config/types';
 function createSearchFunction(tableName: string): Function {
 	const searchFunction = async (
 		entry: dataTypesEntry,
-		callBackErr?: Function
+		callBackErr?: Function,
+		match?: stringMatch
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
-				enteries: number;
+				entCount: number;
 				data: dataTypes;
 		  }
 		| {
 				feedback: serviceStatus.failed;
-				enteries: 0;
+				entCount: 0;
 				data: Error;
 		  }
 	> => {
@@ -80,15 +81,16 @@ function createSearchFunction(tableName: string): Function {
 					[tableName],
 					[filterColumn],
 					[filterValue],
-					['exactMatchAll']
+					[match ? match : 'exactMatchAll']
 				);
 				const sql = SQL.BUILDSQL();
 				const conn = await client.connect();
-				const result = await conn.query(sql);
+				const result = await conn.query(sql[0]);
+				const entCount = (await conn.query(sql[1])).rowCount;
 				conn.release();
 				return {
 					feedback: serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: entCount,
 					data: result.rows,
 				};
 			} else {
@@ -97,7 +99,7 @@ function createSearchFunction(tableName: string): Function {
 					console.error(`Can't create search function for ${tableName}`);
 					return {
 						feedback: serviceStatus.failed,
-						enteries: 0,
+						entCount: 0,
 						data: new Error(`Can't create search function for ${tableName}`),
 					};
 				})();
@@ -107,14 +109,14 @@ function createSearchFunction(tableName: string): Function {
 				callBackErr(error as Error);
 				return {
 					feedback: serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			} else {
 				console.log(`Error: ${error}`);
 				return {
 					feedback: serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			}

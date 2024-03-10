@@ -24,12 +24,12 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
-				enteries: number;
+				entCount: number;
 				data: dataTypes;
 		  }
 		| {
 				feedback: serviceStatus.failed;
-				enteries: 0;
+				entCount: 0;
 				data: Error;
 		  }
 	> => {
@@ -368,7 +368,6 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 						[criteria.lastEntryInd],
 						['<']
 					);
-			// console.log(`Last Entry Index = ${criteria.lastEntryInd}`);
 			criteria.LIMIT &&
 				sqlQuery.LIMIT(criteria.LIMIT).ORDERBY(tableName, 'ind', 'DESC');
 
@@ -377,16 +376,18 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 				: '';
 			const SQL = sqlQuery.BUILDSQL();
 			if (SQL) {
-				console.log(SQL);
+				console.log(SQL[0]);
+				console.log(SQL[1]);
 				const conn = await client.connect();
-				const result = await conn.query(SQL);
+				const result = await conn.query(SQL[0]);
+				const entCount = (await conn.query(SQL[1])).rowCount;
 				conn.release();
 				const updatedArr = result.rows.map((r) => {
 					return { ...r, ind: r[indexKey] };
 				});
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: entCount,
 					data: updatedArr,
 				};
 			} else {
@@ -397,7 +398,7 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 					);
 					return {
 						feedback: LocalAConfig.serviceStatus.failed,
-						enteries: 0,
+						entCount: 0,
 						data: new Error(
 							`Can't create showAllOnCriteria function for ${tableName}`
 						),
@@ -410,14 +411,14 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 				callBackErr(error as Error);
 				return {
 					feedback: LocalAConfig.serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			} else {
 				console.log(`Error: ${error}`);
 				return {
 					feedback: LocalAConfig.serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			}
@@ -434,12 +435,12 @@ function legacy_createShowAllOnCriteriaFunction(tableName: string): Function {
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
-				enteries: number;
+				entCount: number;
 				data: dataTypes;
 		  }
 		| {
 				feedback: serviceStatus.failed;
-				enteries: 0;
+				entCount: 0;
 				data: Error;
 		  }
 	> => {
@@ -703,6 +704,7 @@ function legacy_createShowAllOnCriteriaFunction(tableName: string): Function {
 				console.log(SQL);
 				const conn = await client.connect();
 				const result = await conn.query(SQL);
+				const entCount = (await conn.query(SQL[1])).rowCount;
 				conn.release();
 
 				const updatedArr = result.rows.map((r) => {
@@ -710,7 +712,7 @@ function legacy_createShowAllOnCriteriaFunction(tableName: string): Function {
 				});
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: entCount,
 					data: updatedArr,
 				};
 			} else {
@@ -721,7 +723,7 @@ function legacy_createShowAllOnCriteriaFunction(tableName: string): Function {
 					);
 					return {
 						feedback: LocalAConfig.serviceStatus.failed,
-						enteries: 0,
+						entCount: 0,
 						data: new Error(
 							`Can't create showAllOnCriteria function for ${tableName}`
 						),
@@ -733,14 +735,14 @@ function legacy_createShowAllOnCriteriaFunction(tableName: string): Function {
 				callBackErr(error as Error);
 				return {
 					feedback: LocalAConfig.serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			} else {
 				console.log(`Error: ${error}`);
 				return {
 					feedback: LocalAConfig.serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			}

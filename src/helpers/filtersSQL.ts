@@ -240,6 +240,7 @@ export class SELECTSQLQUERY {
 	private limit = '';
 	private firstWHEREStatement = true;
 	private mainTableName = '';
+	private mainSchemaName = '';
 	public OR_in_WHERE_statement() {
 		//  to avoid adding OR if no previous WHERE STATAEMENT
 		this.where += this.where.includes('WHERE') ? `\nOR ` : '';
@@ -822,6 +823,7 @@ export class SELECTSQLQUERY {
 	) {
 		const { tablesNames, columnsNames, asColumnsName } = columns;
 		// to be used later on when needed instead of requiring to provide in each function
+		this.mainSchemaName = FROMschemaName;
 		this.mainTableName = FROMtableName;
 		this.select += `SELECT `;
 		if (columnsNames === '*') {
@@ -856,9 +858,9 @@ export class SELECTSQLQUERY {
 		table1Fkey: string,
 		table2FKey: string
 	) {
-		const { mainTableName } = this;
-		if (mainTableName !== table2Name) {
-			this.join += `\n${joinDirection} JOIN ${table2SchemaName}.${table2Name}\nON ${mainTableName}."${table1Fkey}" = ${table2Name}."${table2FKey}"`;
+		// const { mainTableName } = this;
+		if (this.mainTableName !== table2Name) {
+			this.join += `\n${joinDirection} JOIN ${table2SchemaName}.${table2Name}\nON ${this.mainTableName}."${table1Fkey}" = ${table2Name}."${table2FKey}"`;
 		}
 		return this;
 	}
@@ -892,6 +894,7 @@ export class SELECTSQLQUERY {
 			str = str.concat(this.groupbyAggregateColumn);
 		}
 		str += `${this.orderby}${this.limit};`;
+		const countStr = str.split('LIMIT')[0];
 
 		// Clear the object
 		this.where = '';
@@ -903,6 +906,6 @@ export class SELECTSQLQUERY {
 		this.limit = '';
 		this.firstWHEREStatement = true;
 		// return the SQL string
-		return str;
+		return [str, countStr];
 	}
 }

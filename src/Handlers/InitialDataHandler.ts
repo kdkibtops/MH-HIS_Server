@@ -12,7 +12,7 @@ const getInitialDataHandler = async (req: Request, res: Response) => {
 	try {
 		const getInitalData = await getInitialData();
 		if (!getInitalData.err) {
-			sendSuccessfulResponse(res, newToken, getInitalData.initialData);
+			sendSuccessfulResponse(res, newToken, getInitalData.initialData, 1);
 		} else {
 			sendServerError(
 				res,

@@ -59,7 +59,7 @@ async function insertNewStudy(req: Request, res: Response) {
 			);
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				studyPresentResponse.enteries === 0
+				studyPresentResponse.entCount === 0
 			) {
 				const createdStudy = await insertStudy(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -80,7 +80,7 @@ async function insertNewStudy(req: Request, res: Response) {
 			/**update study data if study is already present*/
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				studyPresentResponse.enteries > 0
+				studyPresentResponse.entCount > 0
 			) {
 				const studyToUpdate = await updateStudy(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -159,9 +159,12 @@ async function showAllStudiesInDatabaseOnCriteria(req: Request, res: Response) {
 				allPatientsInDatabaseOnCriteria.feedback ===
 				LocalAConfig.serviceStatus.success
 			) {
-				return sendSuccessfulResponse(res, newToken, [
-					...(allPatientsInDatabaseOnCriteria.data as Study[]),
-				]);
+				return sendSuccessfulResponse(
+					res,
+					newToken,
+					[...(allPatientsInDatabaseOnCriteria.data as Study[])],
+					allPatientsInDatabaseOnCriteria.entCount
+				);
 			} else {
 				const error = new Error(`Can't show all patients On Criteria`);
 				error.name = 'showAllPatients Error';
@@ -213,9 +216,12 @@ async function showAllStudiesInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (allStudiesInDatabase.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allStudiesInDatabase.data as Study[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allStudiesInDatabase.data as Study[])],
+				allStudiesInDatabase.entCount
+			);
 		} else {
 			const error = new Error(`Can't shows all studies`);
 			error.name = `Unknown error`;
@@ -267,9 +273,12 @@ async function limitedShowAllStudiesInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (allStudiesInDatabase.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allStudiesInDatabase.data as Study[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allStudiesInDatabase.data as Study[])],
+				allStudiesInDatabase.entCount
+			);
 		} else {
 			const error = new Error(`Can't shows all studies`);
 			error.name = `Unknown error`;
@@ -335,7 +344,7 @@ async function updateOldStudy(req: Request, res: Response) {
 			);
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				studyPresentResponse.enteries > 0
+				studyPresentResponse.entCount > 0
 			) {
 				const studyToUpdate = await updateStudy(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -355,7 +364,7 @@ async function updateOldStudy(req: Request, res: Response) {
 				}
 			} else if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				studyPresentResponse.enteries === 0
+				studyPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(
@@ -431,7 +440,7 @@ async function deleteOldStudy(req: Request, res: Response) {
 			);
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				studyPresentResponse.enteries > 0
+				studyPresentResponse.entCount > 0
 			) {
 				const studyToDelete = await deleteStudy(study, (err: Error) => {
 					sendBadRequestResponse(
@@ -445,13 +454,16 @@ async function deleteOldStudy(req: Request, res: Response) {
 					);
 				});
 				if (studyToDelete.feedback === LocalAConfig.serviceStatus.success) {
-					return sendSuccessfulResponse(res, newToken, [
-						...(studyToDelete.data as Study[]),
-					]);
+					return sendSuccessfulResponse(
+						res,
+						newToken,
+						[...(studyToDelete.data as Study[])],
+						studyToDelete.entCount
+					);
 				}
 			} else if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				studyPresentResponse.enteries === 0
+				studyPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					LocalAConfig.errorMessages.toSendMessages.UIDNotPresentInDatabase(
@@ -521,7 +533,12 @@ async function queryUsers(req: Request, res: Response) {
 					err
 				);
 			});
-			sendSuccessfulResponse(res, newToken, [...(data.data as Study[])]);
+			sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(data.data as Study[])],
+				data.entCount
+			);
 		}
 	} catch (error) {
 		const err = error as Error;

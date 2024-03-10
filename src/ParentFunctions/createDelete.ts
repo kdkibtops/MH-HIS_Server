@@ -10,12 +10,12 @@ function createDeleteFunction(tableName: string): Function {
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
-				enteries: number;
+				entCount: number;
 				data: dataTypes;
 		  }
 		| {
 				feedback: serviceStatus.failed;
-				enteries: 0;
+				entCount: 0;
 				data: Error;
 		  }
 	> => {
@@ -38,7 +38,7 @@ function createDeleteFunction(tableName: string): Function {
 				conn.release();
 				return {
 					feedback: serviceStatus.success,
-					enteries: result.rowCount,
+					entCount: result.rowCount,
 					data: result.rows,
 				};
 			} else {
@@ -47,7 +47,7 @@ function createDeleteFunction(tableName: string): Function {
 					console.error(`Can't create delete function for ${tableName}`);
 					return {
 						feedback: serviceStatus.failed,
-						enteries: 0,
+						entCount: 0,
 						data: new Error(`Can't create delete function for ${tableName}`),
 					};
 				})();
@@ -57,14 +57,14 @@ function createDeleteFunction(tableName: string): Function {
 				callBackErr(error as Error);
 				return {
 					feedback: serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			} else {
 				console.log(`Error: ${error}`);
 				return {
 					feedback: serviceStatus.failed,
-					enteries: 0,
+					entCount: 0,
 					data: error as Error,
 				};
 			}

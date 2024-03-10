@@ -3,7 +3,7 @@ import sqlite3, { OPEN_CREATE } from 'sqlite3';
 import { open } from 'sqlite';
 import client from './database';
 import path from 'path';
-import { rm } from 'fs';
+import { existsSync, rm } from 'fs';
 import { DICOMSTORAGEFOLDER } from './DICOM/DICOMServer';
 
 const updateDB = async () => {
@@ -204,13 +204,18 @@ export const deleteStudyMySQL = async (StudyInstanceUID: string) => {
 		const deleteStudy = `DELETE FROM study WHERE id= '${studyID}';`;
 		db.run(deleteStudy).then(() => {
 			console.log('Deleting folder');
-			rm(
-				path.join(DICOMSTORAGEFOLDER, StudyInstanceUID),
-				{ recursive: true },
-				(err) => {
-					console.log(err);
+			StudyInstanceUID;
+			if (StudyInstanceUID) {
+				if (existsSync(path.join(DICOMSTORAGEFOLDER, StudyInstanceUID))) {
+					rm(
+						path.join(DICOMSTORAGEFOLDER, StudyInstanceUID),
+						{ recursive: true },
+						(err) => {
+							console.log(err);
+						}
+					);
 				}
-			);
+			}
 		});
 
 		return true;

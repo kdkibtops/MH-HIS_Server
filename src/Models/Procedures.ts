@@ -65,13 +65,13 @@ export async function showAllProcedures(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Procedure[];
 			error: null;
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: null;
 			error: Error;
 	  }
@@ -88,12 +88,12 @@ export async function insertProcedure(
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
-			enteries: number;
+			entCount: number;
 			data: Procedure[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
-			enteries: 0;
+			entCount: 0;
 			data: Error;
 	  }
 > {
@@ -193,8 +193,8 @@ export const genericDeletePathFromDB = async (
 	filePath: string,
 	dataCategory: string
 ): Promise<
-	| { feedback: serviceStatus.success; enteries: number; data: dataTypes }
-	| { feedback: serviceStatus.failed; enteries: number; data: Error }
+	| { feedback: serviceStatus.success; entCount: number; data: dataTypes }
+	| { feedback: serviceStatus.failed; entCount: number; data: Error }
 > => {
 	const conn = await client.connect();
 	try {
@@ -242,12 +242,12 @@ WHERE LOWER(procedure_id) = LOWER('${filterValue}') RETURNING paperwork;
 		conn.release();
 		return {
 			feedback: serviceStatus.success,
-			enteries: 1,
+			entCount: 1,
 			data: [{ path: filePath }],
 		};
 	} catch (error) {
 		const err = error as Error;
-		return { feedback: serviceStatus.failed, data: err, enteries: 1 };
+		return { feedback: serviceStatus.failed, data: err, entCount: 1 };
 	} finally {
 		conn.release();
 	}

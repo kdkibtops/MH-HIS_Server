@@ -67,7 +67,7 @@ async function insertNewPatient(req: Request, res: Response) {
 			if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
-				patientPresentResponse.enteries === 0
+				patientPresentResponse.entCount === 0
 			) {
 				const createdPatient = await insertPatient(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -89,7 +89,7 @@ async function insertNewPatient(req: Request, res: Response) {
 			if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
-				patientPresentResponse.enteries > 0
+				patientPresentResponse.entCount > 0
 			) {
 				const updatedPatient = await updatePatient(reqBody, (err: Error) => {
 					sendBadRequestResponse(
@@ -171,9 +171,12 @@ async function showAllPatientsInDatabaseOnCriteria(
 				allPatientsInDatabaseOnCriteria.feedback ===
 				LocalAConfig.serviceStatus.success
 			) {
-				return sendSuccessfulResponse(res, newToken, [
-					...(allPatientsInDatabaseOnCriteria.data as Patient[]),
-				]);
+				return sendSuccessfulResponse(
+					res,
+					newToken,
+					[...(allPatientsInDatabaseOnCriteria.data as Patient[])],
+					allPatientsInDatabaseOnCriteria.entCount
+				);
 			} else {
 				const error = new Error(`Can't show all patients On Criteria`);
 				error.name = 'showAllPatients Error';
@@ -225,9 +228,12 @@ async function showAllPatientsInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (allPatientsInDatabase.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allPatientsInDatabase.data as Patient[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allPatientsInDatabase.data as Patient[])],
+				allPatientsInDatabase.entCount
+			);
 		} else {
 			const error = new Error(`Can't show all patients`);
 			error.name = 'Unknown Error';
@@ -278,9 +284,12 @@ async function limitedShowAllPatientsInDatabase(req: Request, res: Response) {
 			);
 		});
 		if (allPatientsInDatabase.feedback === LocalAConfig.serviceStatus.success) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allPatientsInDatabase.data as Patient[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allPatientsInDatabase.data as Patient[])],
+				allPatientsInDatabase.entCount
+			);
 		} else {
 			const error = new Error(`Can't show all patients`);
 			error.name = 'Unknown Error';
@@ -345,7 +354,7 @@ async function updateOldPatient(req: Request, res: Response) {
 			if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
-				patientPresentResponse.enteries > 0
+				patientPresentResponse.entCount > 0
 			) {
 				const patientToUpdate = await updatePatient(reqBody, (err: Error) => {
 					// const data = await updatePatient(reqBody, (err: Error) => {
@@ -368,7 +377,7 @@ async function updateOldPatient(req: Request, res: Response) {
 			} else if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
-				patientPresentResponse.enteries === 0
+				patientPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					`Bad Request, Patient ${patient.mrn} is not found in the request database`
@@ -442,7 +451,7 @@ async function deleteOldPatient(req: Request, res: Response) {
 			if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
-				patientPresentResponse.enteries > 0
+				patientPresentResponse.entCount > 0
 			) {
 				const patientToDelete = await deletePatient(patient, (err: Error) => {
 					sendBadRequestResponse(
@@ -456,14 +465,17 @@ async function deleteOldPatient(req: Request, res: Response) {
 					);
 				});
 				if (patientToDelete.feedback === LocalAConfig.serviceStatus.success) {
-					return sendSuccessfulResponse(res, newToken, [
-						...(patientToDelete.data as Patient[]),
-					]);
+					return sendSuccessfulResponse(
+						res,
+						newToken,
+						[...(patientToDelete.data as Patient[])],
+						patientToDelete.entCount
+					);
 				}
 			} else if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
-				patientPresentResponse.enteries === 0
+				patientPresentResponse.entCount === 0
 			) {
 				const error = new Error(
 					`Bad Request, Patient ${patient.mrn} is not found in the request database`
@@ -530,7 +542,12 @@ async function queryPatients(req: Request, res: Response) {
 					err
 				);
 			});
-			sendSuccessfulResponse(res, newToken, [...(data.data as Patient[])]);
+			sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(data.data as Patient[])],
+				data.entCount
+			);
 		}
 	} catch (error) {
 		const err = error as Error;

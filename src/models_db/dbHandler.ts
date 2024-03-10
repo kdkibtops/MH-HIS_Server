@@ -250,7 +250,7 @@ const getColumnNames = async (req: Request, res: Response) => {
 		const result = await getTableColumnsFromDatabase(schemaName, tableName);
 		if (!result.err) {
 			if (result.data.length > 0)
-				sendSuccessfulResponse(res, newToken, result.data);
+				sendSuccessfulResponse(res, newToken, result.data, 1);
 			if (result.data.length === 0)
 				sendNotFoundResponse(
 					res,

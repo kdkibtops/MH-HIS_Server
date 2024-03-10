@@ -24,10 +24,10 @@ export const showUser = async (
 		const SQL = `SELECT * FROM main.users WHERE ${queryColumn} = '${queryValue}'`;
 		const conn = await client.connect();
 		const result = await conn.query(SQL);
+		conn.release();
 		if (result.rowCount) {
 			delete result.rows[0].user_password;
 		}
-		conn.release();
 		return result.rows[0];
 	} catch (error) {
 		console.log(`${error}`);
@@ -182,7 +182,7 @@ export async function authenticateUser(
 	  }
 	| { authStatus: false; username: null; message: 'Unknown error'; err: Error }
 > {
-	const username: string = reqBody.username as string;
+	const username: string = reqBody.username?.toLowerCase() as string;
 	const password: string = reqBody.user_password as string;
 	const auth = await authenticate(
 		username,
@@ -258,8 +258,7 @@ export async function authenticate(
 }> {
 	try {
 		const conn = await client.connect();
-		const sql = `SELECT user_id, user_password,full_name,username,user_role, job, email from main.users WHERE username ='${username}'`;
-		console.log(sql);
+		const sql = `SELECT user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER(username) =LOWER('${username}')`;
 		const result = await conn.query(sql);
 		conn.release();
 		if (result.rowCount === 0) {
@@ -282,7 +281,7 @@ export async function authenticate(
 				status: authenticated, //true if authenticated, false if not authenticated
 				full_name: full_name, // will always return the full name
 				user_id: user_id, // will always return the user_id
-				username: username, // will always return the username
+				username: result.rows[0].username, // will always return the username
 				user_role: user_role,
 				job: job,
 			};

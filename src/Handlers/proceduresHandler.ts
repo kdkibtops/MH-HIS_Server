@@ -54,9 +54,12 @@ async function showAllProceduresInDatabase(req: Request, res: Response) {
 		if (
 			allProceduresInDatabase.feedback === LocalAConfig.serviceStatus.success
 		) {
-			return sendSuccessfulResponse(res, newToken, [
-				...(allProceduresInDatabase.data as Procedure[]),
-			]);
+			return sendSuccessfulResponse(
+				res,
+				newToken,
+				[...(allProceduresInDatabase.data as Procedure[])],
+				allProceduresInDatabase.entCount
+			);
 		} else if (
 			allProceduresInDatabase.feedback === LocalAConfig.serviceStatus.failed &&
 			!allProceduresInDatabase.error
@@ -254,7 +257,7 @@ export default proceduresHandler;
 // 			});
 // 			if (
 // 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-// 				orderPresentResponse.enteries === 0
+// 				orderPresentResponse.entCount === 0
 // 			) {
 // 				const createdOrder = await insertOrder(reqBody, (err: Error) => {
 // 					sendBadRequestResponse(
@@ -275,7 +278,7 @@ export default proceduresHandler;
 // 			// update order data if order is already present
 // 			if (
 // 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-// 				orderPresentResponse.enteries > 0
+// 				orderPresentResponse.entCount > 0
 // 			) {
 // 				const updatedOrder = await updateOrder(reqBody, (err: Error) => {
 // 					sendBadRequestResponse(
@@ -474,7 +477,7 @@ export default proceduresHandler;
 // 			});
 // 			if (
 // 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-// 				orderPresentResponse.enteries > 0
+// 				orderPresentResponse.entCount > 0
 // 			) {
 // 				const orderToUpdate = await updateOrder(reqBody, (err: Error) => {
 // 					sendBadRequestResponse(
@@ -494,7 +497,7 @@ export default proceduresHandler;
 // 				}
 // 			} else if (
 // 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-// 				orderPresentResponse.enteries === 0
+// 				orderPresentResponse.entCount === 0
 // 			) {
 // 				const error = new Error(
 // 					`Bad Request, Order ${order.order_id} is not found in the request database`
@@ -566,7 +569,7 @@ export default proceduresHandler;
 
 // 			if (
 // 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-// 				orderPresentResponse.enteries > 0
+// 				orderPresentResponse.entCount > 0
 // 			) {
 // 				const orderToDelete = await deleteOrder(order, (err: Error) => {
 // 					sendBadRequestResponse(
@@ -586,7 +589,7 @@ export default proceduresHandler;
 // 				}
 // 			} else if (
 // 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-// 				orderPresentResponse.enteries === 0
+// 				orderPresentResponse.entCount === 0
 // 			) {
 // 				const error = new Error(
 // 					`Bad Request, Order ${order.order_id} is not found in the request database`
