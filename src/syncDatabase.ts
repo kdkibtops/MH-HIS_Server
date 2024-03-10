@@ -114,9 +114,28 @@ const updateDB = async (callBackErr?: Function) => {
 						}', 'admin')
 							ON CONFLICT DO NOTHING`;
 						// console.log(createStudySQL);
-						await stuConn.query(createStudySQL);
+						try {
+							await stuConn.query(createStudySQL);
+							stuConn.release();
+						} catch (err) {
+							const error = err as Error;
+							await db
+								.each(
+									`UPDATE change_log SET processed = 1 , Err = 'Name: ${JSON.stringify(
+										error.name
+									)} - Message: ${
+										error.message
+									}', last_update = (datetime('now','localtime')) WHERE id = ${
+										row.id
+									}`,
+									() => console.log('update succeeded')
+								)
+								.catch((err) => logError(err));
+							logError(error);
+							console.log(`Error in inserting new patient to postgreSQL`);
+							logError(err as Error);
+						}
 					}
-					stuConn.release();
 
 					// Inserting patient to postgreSQL
 					const createPatientSQL = `INSERT INTO main.patients 
@@ -132,6 +151,20 @@ const updateDB = async (callBackErr?: Function) => {
 						await patConn.query(createPatientSQL);
 						patConn.release();
 					} catch (err) {
+						const error = err as Error;
+						await db
+							.each(
+								`UPDATE change_log SET processed = 1 , Err = 'Name: ${JSON.stringify(
+									error.name
+								)} - Message: ${
+									error.message
+								}', last_update = (datetime('now','localtime')) WHERE id = ${
+									row.id
+								}`,
+								() => console.log('update succeeded')
+							)
+							.catch((err) => logError(err));
+						logError(error);
 						console.log(`Error in inserting new patient to postgreSQL`);
 						logError(err as Error);
 					}
@@ -164,6 +197,7 @@ const updateDB = async (callBackErr?: Function) => {
 								WHERE LOWER(orders.order_id) = LOWER('${AccessionNumber}')
 								`;
 						// console.log(createOrderSQL);
+
 						try {
 							const serConn = await client.connect();
 							const insertedTOPGDB = await serConn.query(createOrderSQL);
