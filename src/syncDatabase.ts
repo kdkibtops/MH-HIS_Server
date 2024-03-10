@@ -64,7 +64,6 @@ const updateDB = async (callBackErr?: Function) => {
 					: false;
 
 				if (patient && order && series) {
-					const conn = await client.connect();
 					console.log('Processing new data');
 
 					const { PatientID, PatientName, PatientBirthDate, PatientSex } =
@@ -98,9 +97,15 @@ const updateDB = async (callBackErr?: Function) => {
 							: 'Undefined'
 					}`;
 
+					// Check study in postgreSQL DB, if found retrieve study code else insert new study, this is becasue in study only I search for study
+					// by study name not study_id to avoid duplication of name as much as possible, if the name is present I should use the same study code
+					// instead of creating new study with the same name
 					const checkStudyFoundSQL = `SELECT * FROM main.studies WHERE LOWER(study_name)=LOWER('${order['StudyDescription']}')`;
-					console.log(checkStudyFoundSQL);
-					const studyFound = (await conn.query(checkStudyFoundSQL)).rowCount;
+					// console.log(checkStudyFoundSQL);
+					const stuConn = await client.connect();
+					const study = await stuConn.query(checkStudyFoundSQL);
+					const studyFound = study.rowCount;
+					const retrievedStudyCode = study.rows[0]['study_id'];
 					if (studyFound === 0 || order['StudyDescription'] === null) {
 						const createStudySQL = `INSERT INTO main.studies 
 							(study_id, study_name,modality,updated_by) 
@@ -108,10 +113,12 @@ const updateDB = async (callBackErr?: Function) => {
 							modality ? modality : 'Undefined'
 						}', 'admin')
 							ON CONFLICT DO NOTHING`;
-						console.log(createStudySQL);
-						await conn.query(createStudySQL);
+						// console.log(createStudySQL);
+						await stuConn.query(createStudySQL);
 					}
+					stuConn.release();
 
+					// Inserting patient to postgreSQL
 					const createPatientSQL = `INSERT INTO main.patients 
 						(patient_name, mrn, dob,age,gender,updated_by) 
 						VALUES ('${String(PatientName).replaceAll(
@@ -119,9 +126,23 @@ const updateDB = async (callBackErr?: Function) => {
 							' '
 						)}',LOWER('${PatientID}'),'${dob}','${age}' ,'${gender}','admin')
 						ON CONFLICT DO NOTHING`;
-					console.log(createPatientSQL);
-					await conn.query(createPatientSQL);
+					// console.log(createPatientSQL);
+					try {
+						const patConn = await client.connect();
+						await patConn.query(createPatientSQL);
+						patConn.release();
+					} catch (err) {
+						console.log(`Error in inserting new patient to postgreSQL`);
+						logError(err as Error);
+					}
+
 					series.forEach(async (ser) => {
+						// if the study found, may be study_id is different, so to avoid fkey constraint error, we use the study_id retrieved from the found study
+						const studyCodeInLowerCase =
+							studyFound === 0
+								? `LOWER('${modality}${StudyID}')`
+								: `'${retrievedStudyCode}'`;
+
 						const { Modality } = ser;
 						const radiationDose =
 							// find a logic to read the radiation dose from the SR dose report file
@@ -132,7 +153,7 @@ const updateDB = async (callBackErr?: Function) => {
 								}) 
 								VALUES(LOWER('${
 									AccessionNumber ? AccessionNumber : `${StudyDate}${StudyTime}`
-								}'),LOWER('${PatientID}'),LOWER('${modality}${StudyID}'),'${StudyDate}','Completed','Pending','admin','${StudyInstanceUID}', ${Number(
+								}'),LOWER('${PatientID}'),${studyCodeInLowerCase},'${StudyDate}','Completed','Pending','admin','${StudyInstanceUID}', ${Number(
 							numSeries
 						)}${radiationDose[1] === '' ? '' : ',' + radiationDose[1]})
 								ON CONFLICT ON CONSTRAINT orders_pkey DO 
@@ -142,19 +163,49 @@ const updateDB = async (callBackErr?: Function) => {
 								${radiationDose[0]}${ser['Modality'] === 'SR' ? '=' : ''}${radiationDose[1]}
 								WHERE LOWER(orders.order_id) = LOWER('${AccessionNumber}')
 								`;
-						console.log(createOrderSQL);
-						await conn.query(createOrderSQL);
+						// console.log(createOrderSQL);
+						try {
+							const serConn = await client.connect();
+							const insertedTOPGDB = await serConn.query(createOrderSQL);
+							serConn.release();
+							if (insertedTOPGDB) {
+								await db
+									.each(
+										`UPDATE change_log SET processed = true , Err = null ,last_update = (datetime('now','localtime')) WHERE id = ${row.id}`,
+										() => console.log('update succeeded')
+									)
+									.catch((err) => logError(err));
+							} else {
+								await db
+									.each(
+										`UPDATE change_log SET processed = 1 , Err = 'Error at inserting order to postgreSQL' , last_update = (datetime('now','localtime')) WHERE id = ${row.id}`,
+										() => console.log('update succeeded')
+									)
+									.catch((err) => logError(err));
+							}
+						} catch (err) {
+							const error = err as Error;
+							console.log(`Error in inserting new order to postgreSQL`);
+							await db
+								.each(
+									`UPDATE change_log SET processed = 1 , Err = 'Name: ${JSON.stringify(
+										error.name
+									)} - Message: ${
+										error.message
+									}', last_update = (datetime('now','localtime')) WHERE id = ${
+										row.id
+									}`,
+									() => console.log('update succeeded')
+								)
+								.catch((err) => logError(err));
+							logError(error as Error);
+						}
 					});
-					conn.release();
-					await db.each(
-						`UPDATE change_log SET processed = true , last_update = (datetime('now','localtime')) WHERE id = ${row.id}`,
-						() => console.log('update succeeded')
-					);
 				} else {
 					db.each(
 						`UPDATE change_log SET processed = true , last_update = (datetime('now','localtime')) WHERE id = ${row.id}`,
 						() => console.log('update succeeded')
-					);
+					).catch((err) => logError(err));
 				}
 			});
 		}
@@ -203,29 +254,32 @@ export const deleteStudyMySQL = async (
 				const deleteSeries = `DELETE FROM series WHERE id= '${ser.id}';`;
 				console.log(deleteImage);
 				console.log(deleteSeries);
-				db.each(deleteImage, () => console.log('deleted images')).then(() => {
-					console.log(deleteSeries);
-					db.each(deleteSeries, () => console.log('deleted series'));
-				});
+				db.each(deleteImage, () => console.log('deleted images'))
+					.then(() => {
+						console.log(deleteSeries);
+						db.each(deleteSeries, () => console.log('deleted series'));
+					})
+					.catch((err) => logError(err));
 			});
 		}
 		const deleteStudy = `DELETE FROM study WHERE id= '${studyID}';`;
-		db.run(deleteStudy).then(() => {
-			console.log('Deleting folder');
-			StudyInstanceUID;
-			if (StudyInstanceUID) {
-				if (existsSync(path.join(DICOMSTORAGEFOLDER, StudyInstanceUID))) {
-					rm(
-						path.join(DICOMSTORAGEFOLDER, StudyInstanceUID),
-						{ recursive: true },
-						(err) => {
-							console.log(err);
-						}
-					);
+		db.run(deleteStudy)
+			.then(() => {
+				console.log('Deleting folder');
+				StudyInstanceUID;
+				if (StudyInstanceUID) {
+					if (existsSync(path.join(DICOMSTORAGEFOLDER, StudyInstanceUID))) {
+						rm(
+							path.join(DICOMSTORAGEFOLDER, StudyInstanceUID),
+							{ recursive: true },
+							(err) => {
+								console.log(err);
+							}
+						);
+					}
 				}
-			}
-		});
-
+			})
+			.catch((err) => logError(err));
 		return true;
 	} catch (error) {
 		if (callBackErr) {

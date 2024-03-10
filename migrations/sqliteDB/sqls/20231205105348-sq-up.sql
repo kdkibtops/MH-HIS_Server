@@ -7,6 +7,7 @@ CREATE TABLE
     study_id INTEGER NOT NULL,
     StudyInstanceUID VARCHAR,
     processed BOOLEAN NOT NULL,
+    Err VARCHAR,
     last_update DATE DEFAULT (datetime ('now', 'localtime'))
   );
 
