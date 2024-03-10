@@ -16,8 +16,8 @@ import { PoolClient, QueryResult } from 'pg';
 import { Response } from 'express';
 import { sendServerError } from '../ResponseHandler/ServerError';
 import { selectOptionsValues } from '../config/selectOption';
-//  take care that the following array must be written in order of dependant table on database, if not foreign key violation error will occur
 
+//  take care that the following array must be written in order of dependant table on database, if not foreign key violation error will occur
 export const allowedBulkUploadTables = [
 	{
 		schemaName: 'main',
@@ -142,20 +142,35 @@ export const allowedBulkUploadTables = [
 		buttonTitle: 'IR Procedures',
 	},
 ];
-async function getCSVFileColumns(path: string): Promise<string[]> {
-	console.log(path);
-	const csvText = readFileSync(path, {
-		encoding: 'utf8',
-		flag: 'r',
-	});
-	const columnsArr = csvText.split('\r')[0].split(',');
-	let str = columnsArr.map((col) => `"${col as string}",`);
-	str[str.length - 1] = str[str.length - 1].slice(0, -1);
-	return str;
+async function getCSVFileColumns(
+	path: string,
+	callBackErr?: Function
+): Promise<string[]> {
+	try {
+		console.log(path);
+		const csvText = readFileSync(path, {
+			encoding: 'utf8',
+			flag: 'r',
+		});
+		const columnsArr = csvText.split('\r')[0].split(',');
+		let str = columnsArr.map((col) => `"${col as string}",`);
+		str[str.length - 1] = str[str.length - 1].slice(0, -1);
+		return str;
+	} catch (err) {
+		const error = err as Error;
+		if (callBackErr) {
+			callBackErr(error as Error);
+			return [''];
+		} else {
+			console.log(`Error: ${error.message}`);
+			return [''];
+		}
+	}
 }
 export async function getTableColumnsFromDatabase(
 	schemaName: string,
-	tableName: string
+	tableName: string,
+	callBackErr?: Function
 ): Promise<
 	| {
 			data: {
@@ -226,7 +241,12 @@ export async function getTableColumnsFromDatabase(
 			err: null,
 		};
 	} catch (error) {
-		return { data: [], err: error as Error };
+		if (callBackErr) {
+			callBackErr(error as Error);
+			return { data: [], err: error as Error };
+		} else {
+			return { data: [], err: error as Error };
+		}
 	}
 }
 export async function insertDataFromCSVtoDB(
@@ -234,7 +254,8 @@ export async function insertDataFromCSVtoDB(
 	columnsNammeString: string,
 	schemaName: string,
 	tableName: string,
-	folderPath: string
+	folderPath: string,
+	callBackErr?: Function
 	// connection: PoolClient
 ): Promise<QueryResult | boolean> {
 	try {
@@ -280,7 +301,12 @@ ${
 		conn.release();
 		return result;
 	} catch (error) {
-		return false;
+		if (callBackErr) {
+			callBackErr(error as Error);
+			return false;
+		} else {
+			return false;
+		}
 	}
 }
 export type dbFile = {
@@ -397,7 +423,8 @@ export const dbUpdate_fromCSV = async (
 export const creatTemplateCSVFile = async (
 	schemaName: string,
 	tableName: string,
-	res: Response
+	res: Response,
+	callBackErr?: Function
 ) => {
 	try {
 		const getColumns = await getTableColumnsFromDatabase(schemaName, tableName);
@@ -428,10 +455,20 @@ export const creatTemplateCSVFile = async (
 			});
 		}
 	} catch (error) {
-		sendServerError(
-			res,
-			{ accessToken: '', data: {}, action: serviceAction.failed },
-			error as Error
-		);
+		{
+			if (callBackErr) {
+				callBackErr(error as Error);
+				return {
+					feedback: serviceStatus.failed,
+					entCount: 0,
+					data: error as Error,
+				};
+			} else
+				sendServerError(
+					res,
+					{ accessToken: '', data: {}, action: serviceAction.failed },
+					error as Error
+				);
+		}
 	}
 };

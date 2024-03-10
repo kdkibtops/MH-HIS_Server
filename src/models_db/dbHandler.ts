@@ -100,7 +100,16 @@ const importDataHandler = async (req: Request, res: Response) => {
 			]);
 		});
 	} catch (error) {
-		console.log(`${error}`);
+		const err = error as Error;
+		sendServerError(
+			res,
+			{
+				accessToken: newToken,
+				action: LocalAConfig.serviceAction.failed,
+				data: { message: err.message },
+			},
+			err as Error
+		);
 	}
 };
 const revertImportHadnler = async (req: Request, res: Response) => {

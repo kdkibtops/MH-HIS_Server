@@ -5,8 +5,9 @@ import client from './database';
 import path from 'path';
 import { existsSync, rm } from 'fs';
 import { DICOMSTORAGEFOLDER } from './DICOM/DICOMServer';
+import { logError } from './helpers/errorLogging';
 
-const updateDB = async () => {
+const updateDB = async (callBackErr?: Function) => {
 	try {
 		const db = await open({
 			filename: path.join(
@@ -158,12 +159,19 @@ const updateDB = async () => {
 			});
 		}
 	} catch (error) {
-		console.error('Error');
-		console.error(`${error}`);
+		if (callBackErr) {
+			callBackErr(error);
+		} else {
+			console.error('Error');
+			logError(error as Error);
+		}
 	}
 };
 
-export const deleteStudyMySQL = async (StudyInstanceUID: string) => {
+export const deleteStudyMySQL = async (
+	StudyInstanceUID: string,
+	callBackErr?: Function
+) => {
 	try {
 		const db = await open({
 			filename: path.join(
@@ -219,8 +227,13 @@ export const deleteStudyMySQL = async (StudyInstanceUID: string) => {
 		});
 
 		return true;
-	} catch (err) {
-		console.error(err);
+	} catch (error) {
+		if (callBackErr) {
+			callBackErr(error);
+		} else {
+			console.error(error);
+			logError(error as Error);
+		}
 		return false;
 	}
 };

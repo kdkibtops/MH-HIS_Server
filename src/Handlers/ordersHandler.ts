@@ -37,7 +37,7 @@ import appConfig from '../config/appConfig.json';
 import { selectOptionsValues } from '../config/selectOption';
 import { deleteStudyMySQL } from '../syncDatabase';
 import path from 'path';
-import { existsSync, rm, rmSync } from 'fs';
+import { existsSync, rm } from 'fs';
 
 /** Handles isnerting a new order to the database */
 async function insertNewOrder(req: Request, res: Response) {
@@ -503,7 +503,7 @@ async function deleteOldOrder(req: Request, res: Response) {
 						err
 					);
 				});
-				/**Need further work to delete from MY SQL */
+
 				console.log(`Now deleting mysql entry`);
 				if (orderToDelete.feedback === serviceStatus.success) {
 					console.log(
