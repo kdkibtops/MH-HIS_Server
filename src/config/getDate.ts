@@ -3,24 +3,12 @@
  * @returns {string} current Date & Time
  */
 
-import { setupData } from './config';
-
 export function getDateInEgypt(): string {
-	if (setupData.DaylightTimeSaving) {
-		return new Date(
-			new Date().toLocaleString('en-US', {
-				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-			})
-		)
-			.toISOString()
-			.split('.')[0];
-	} else {
-		return new Date(
-			new Date().toLocaleString('en-US', {
-				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-			})
-		)
-			.toISOString()
-			.split('.')[0];
-	}
+	return new Date()
+		.toLocaleString('en-GB', {
+			timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		})
+		.toString()
+		.replaceAll('/', '-')
+		.replace(', ', 'T');
 }

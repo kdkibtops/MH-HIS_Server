@@ -5,7 +5,7 @@ const pushStudyHandler = async (req: Request, res: Response) => {
 	console.log('HI');
 	try {
 		const STUID = req.params.stuid;
-		pushStudy(STUID as string, 'RADIANT2');
+		pushStudy(STUID as string, 'RADIANT-PACS');
 		console.log('Pushing study');
 	} catch (error) {
 		console.log(`Pushing Study DICOM Failed`);

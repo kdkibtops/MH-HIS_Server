@@ -26,7 +26,11 @@ import {
 	sendSuccessfulResponse,
 } from '../ResponseHandler/SuccessfulResponse';
 import { sendServerError } from '../ResponseHandler/ServerError';
-import { LocalAConfig, serviceStatus } from '../config/LocalConfiguration';
+import {
+	LocalAConfig,
+	serviceAction,
+	serviceStatus,
+} from '../config/LocalConfiguration';
 import {
 	ValidateObjectPresentInRequestBody,
 	ValidatePatientPresent,
@@ -58,17 +62,21 @@ async function insertNewOrder(req: Request, res: Response) {
 			return;
 		} else {
 			// checks if order is present or not
-			const orderPresentResponse = await searchOrders(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
+			const orderPresentResponse = await searchOrders(
+				reqBody,
+				(err: Error) => {
+					sendBadRequestResponse(
+						res,
+						{
+							accessToken: newToken,
+							data: { message: err.message },
+							action: LocalAConfig.serviceAction.failed,
+						},
+						err
+					);
+				},
+				'anyMatch'
+			);
 			if (
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				orderPresentResponse.entCount === 0
@@ -95,26 +103,35 @@ async function insertNewOrder(req: Request, res: Response) {
 				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				orderPresentResponse.entCount > 0
 			) {
-				const updatedOrder = await updateOrder(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
-				if (updatedOrder.feedback === LocalAConfig.serviceStatus.success) {
-					// const updatedData = {
-					// 	...data,
-					// 	action: LocalAConfig.serviceAction.updated,
-					// };
-					return sendAcceptedUpdatedResponse(res, newToken, [
-						...(updatedOrder.data as Order[]),
-					]);
-				}
+				sendBadRequestResponse(
+					res,
+					{
+						accessToken: newToken,
+						data: { message: 'Order with same id already registered' },
+						action: serviceAction.pending,
+					},
+					new Error('order alredy present')
+				);
+				// const updatedOrder = await updateOrder(
+				// 	reqBody,
+				// 	(err: Error) => {
+				// 		sendBadRequestResponse(
+				// 			res,
+				// 			{
+				// 				accessToken: newToken,
+				// 				data: { message: err.message },
+				// 				action: LocalAConfig.serviceAction.failed,
+				// 			},
+				// 			err
+				// 		);
+				// 	},
+				// 	'ind'
+				// );
+				// if (updatedOrder.feedback === LocalAConfig.serviceStatus.success) {
+				// 	return sendAcceptedUpdatedResponse(res, newToken, [
+				// 		...(updatedOrder.data as Order[]),
+				// 	]);
+				// }
 			} else if (!orderPresentResponse.feedback) {
 				const err = new Error();
 				err.name = `Unknown error`;
@@ -289,7 +306,7 @@ async function showAllOrdersInDatabase(req: Request, res: Response) {
 					action: LocalAConfig.serviceAction.failed,
 					data: {
 						message:
-							'Unknown error in processing searchOrdersDatabase () in orders handler',
+							'Unknown error in processing showAllOrdersInDatabase () in orders handler',
 					},
 				},
 				error as Error
@@ -345,7 +362,7 @@ async function LimitedShowAllOrdersInDatabase(req: Request, res: Response) {
 					action: LocalAConfig.serviceAction.failed,
 					data: {
 						message:
-							'Unknown error in processing searchOrdersDatabase () in orders handler',
+							'Unknown error in processing LimitedShowAllOrdersInDatabase () in orders handler',
 					},
 				},
 				error as Error
@@ -369,7 +386,6 @@ async function updateOldOrder(req: Request, res: Response) {
 	// recieves new token from middleware and sends it back to the patient
 	const newToken = req.body.token || '';
 	try {
-		console.log('inserting order');
 		const reqBody = req.body as REQBODY;
 		const currentUser = req.body.currentUser;
 		Object.assign((req.body as REQBODY).orders, { updated_by: currentUser });
@@ -385,22 +401,9 @@ async function updateOldOrder(req: Request, res: Response) {
 		} else {
 			const order = reqBody.orders;
 			// checks if order is present => updates the entry
-			const orderPresentResponse = await searchOrders(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
-			if (
-				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.entCount > 0
-			) {
-				const orderToUpdate = await updateOrder(reqBody, (err: Error) => {
+			const orderPresentResponse = await searchOrders(
+				reqBody,
+				(err: Error) => {
 					sendBadRequestResponse(
 						res,
 						{
@@ -410,7 +413,29 @@ async function updateOldOrder(req: Request, res: Response) {
 						},
 						err
 					);
-				});
+				},
+				'=',
+				'ind'
+			);
+			if (
+				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
+				orderPresentResponse.entCount > 0
+			) {
+				const orderToUpdate = await updateOrder(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (orderToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					return sendAcceptedUpdatedResponse(res, newToken, [
 						...(orderToUpdate.data as Order[]),
@@ -476,23 +501,9 @@ async function deleteOldOrder(req: Request, res: Response) {
 		} else {
 			const order = reqBody.orders;
 			// checks if order is present => delete the entry
-			const orderPresentResponse = await searchOrders(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
-
-			if (
-				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				orderPresentResponse.entCount > 0
-			) {
-				const orderToDelete = await deleteOrder(order, (err: Error) => {
+			const orderPresentResponse = await searchOrders(
+				reqBody,
+				(err: Error) => {
 					sendBadRequestResponse(
 						res,
 						{
@@ -502,10 +513,33 @@ async function deleteOldOrder(req: Request, res: Response) {
 						},
 						err
 					);
-				});
+				},
+				'=',
+				'ind'
+			);
 
-				console.log(`Now deleting mysql entry`);
+			if (
+				orderPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
+				orderPresentResponse.entCount > 0
+			) {
+				const orderToDelete = await deleteOrder(
+					order,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
+
 				if (orderToDelete.feedback === serviceStatus.success) {
+					console.log(`Now deleting mysql entry`);
 					console.log(
 						`Study Instance UID: ${orderToDelete.data[0]['study_instance_uid']}`
 					);

@@ -19,6 +19,18 @@ import { sendSuccessfulResponse } from './ResponseHandler/SuccessfulResponse';
 import path from 'path';
 import sendServerConig from './Handlers/sendServerConfigHandler';
 import authenticationRoutes from './Authentication/Handlers/AuthenticationHandler';
+import { networkInterfaces } from 'os';
+import proceduresHandler from './Handlers/proceduresHandler';
+import initalDataHandler from './Handlers/InitialDataHandler';
+import { appendFileSync, existsSync, writeFileSync } from 'fs';
+import {
+	LocalAConfig,
+	updateLoacalConfigJSON,
+} from './config/LocalConfiguration';
+import updateDB from './syncDatabase';
+import StatsHandler from './Handlers/StatsHandler';
+import DICOMHandler from './DICOM/DICOMHandlers';
+import getPGClient from './getPGClient';
 
 /**Function to test connection with database */
 const DBConnectionTest = async (
@@ -63,19 +75,6 @@ const DBConnectionTest = async (
 		);
 	}
 };
-
-import { networkInterfaces } from 'os';
-import proceduresHandler from './Handlers/proceduresHandler';
-import initalDataHandler from './Handlers/InitialDataHandler';
-import { appendFileSync, existsSync, writeFileSync } from 'fs';
-import {
-	LocalAConfig,
-	updateLoacalConfigJSON,
-} from './config/LocalConfiguration';
-import updateDB from './syncDatabase';
-import StatsHandler from './Handlers/StatsHandler';
-import { pushStudy } from './DICOM/DICOMServer';
-import DICOMHandler from './DICOM/DICOMHandlers';
 
 let IP;
 const nets = networkInterfaces();
@@ -181,15 +180,13 @@ filesServer.use(
 	'',
 	express.static(path.join(__dirname, '../', 'application_files'))
 );
+
 filesServer.listen(filesServerPort, startFileServer);
-const getAppConfig = async (req: express.Request, res: express.Response) => {
-	sendSuccessfulResponse(res, '', [{ username: 'this is the app config' }], 1);
-};
+
 //Main Routes
 const mainRoutes = LocalAConfig.mainRoutes;
 
 radAssitApp.get('/testdb', DBConnectionTest);
-radAssitApp.get(mainRoutes.getConfig, getAppConfig);
 radAssitApp.use(mainRoutes.files, refreshAccessToken, filesHandler);
 radAssitApp.use(mainRoutes.orders, refreshAccessToken, orderHandler);
 radAssitApp.use(mainRoutes.studies, refreshAccessToken, studyHandler);
@@ -207,10 +204,10 @@ authServer.use(mainRoutes.authentication, authenticationRoutes);
 
 radAssitApp.use(mainRoutes.database, databaseManipulation);
 
-setInterval(() => {
-	console.log('Updating Database');
-	updateDB();
-}, 5000);
+// setInterval(() => {
+// 	console.log('Updating Database');
+// 	updateDB();
+// }, 60000);
 
 // Should update the localConfig.json file to the current configuration from the server
 updateLoacalConfigJSON();

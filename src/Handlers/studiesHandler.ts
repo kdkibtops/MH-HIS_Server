@@ -55,7 +55,8 @@ async function insertNewStudy(req: Request, res: Response) {
 						},
 						err
 					);
-				}
+				},
+				'anyMatch'
 			);
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
@@ -82,17 +83,21 @@ async function insertNewStudy(req: Request, res: Response) {
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				studyPresentResponse.entCount > 0
 			) {
-				const studyToUpdate = await updateStudy(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const studyToUpdate = await updateStudy(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (studyToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					// const updatedData = {
 					// 	...data,
@@ -340,23 +345,29 @@ async function updateOldStudy(req: Request, res: Response) {
 						},
 						err
 					);
-				}
+				},
+				'=',
+				'ind'
 			);
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				studyPresentResponse.entCount > 0
 			) {
-				const studyToUpdate = await updateStudy(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const studyToUpdate = await updateStudy(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (studyToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					return sendAcceptedUpdatedResponse(res, newToken, [
 						...(studyToUpdate.data as Study[]),
@@ -436,23 +447,29 @@ async function deleteOldStudy(req: Request, res: Response) {
 						},
 						err
 					);
-				}
+				},
+				'=',
+				'ind'
 			);
 			if (
 				studyPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				studyPresentResponse.entCount > 0
 			) {
-				const studyToDelete = await deleteStudy(study, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const studyToDelete = await deleteStudy(
+					study,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (studyToDelete.feedback === LocalAConfig.serviceStatus.success) {
 					return sendSuccessfulResponse(
 						res,

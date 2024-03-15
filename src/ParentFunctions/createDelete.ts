@@ -1,12 +1,14 @@
 import { dataTypes, dataTypesEntry } from '../TypesTrial/RequestTypes';
 import { DBTablesMap, serviceStatus } from '../config/LocalConfiguration';
 import client from '../database';
+import getPGClient from '../getPGClient';
 import { createSQLdelete } from '../helpers/createSQLString';
 
 function createDeleteFunction(tableName: string): Function {
 	const deleteFunction = async (
 		entry: dataTypesEntry,
-		callBackErr?: Function
+		callBackErr?: Function,
+		unusualPrimaryKey?: string
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
@@ -22,24 +24,21 @@ function createDeleteFunction(tableName: string): Function {
 		try {
 			const schemaName =
 				DBTablesMap[tableName as keyof typeof DBTablesMap].shcema;
-			const filterColumn =
-				DBTablesMap[tableName as keyof typeof DBTablesMap].UID_Column;
+			const filterColumn = unusualPrimaryKey
+				? unusualPrimaryKey
+				: DBTablesMap[tableName as keyof typeof DBTablesMap].UID_Column;
 			if (filterColumn) {
-				const filterValue = entry.primaryKey
-					? entry.primaryKey
-					: (entry[filterColumn as keyof typeof entry] as string);
+				const filterValue = entry[filterColumn as keyof typeof entry];
 				const SQL = createSQLdelete(
 					`${schemaName}.${tableName}`,
 					filterColumn,
 					filterValue
 				);
-				const conn = await client.connect();
-				const result = await conn.query(SQL);
-				conn.release();
+				const result = await getPGClient(SQL, [], new Error().stack);
 				return {
 					feedback: serviceStatus.success,
-					entCount: result.rowCount,
-					data: result.rows,
+					entCount: result ? result.rowCount : 0,
+					data: result ? result.rows : [],
 				};
 			} else {
 				// wE SHOULD NOT REACH THIS POINT, SO IT IS WRITTEN ONLY TO AVOID RETURN ERRORS

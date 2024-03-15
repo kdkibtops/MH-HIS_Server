@@ -43,16 +43,23 @@ export const getInitialData = async (): Promise<
 				},
 			],
 		};
-		// This handles values that needs to be updated dyna,mically from the Database
+
+		// This handles values that needs to be updated dynamically from the Database
 		// However this step should be done on the frontend to allow for update without
 		// the need to update the frontend because in our case here
 		// if new radiologist is added, the front-end need to be
 		// refreshed, otherwise the new radiologist will not appear in the list
 		const conn = await client.connect();
 		const sqlRadiolgists = `SELECT * FROM main.users WHERE job = '${selectOptionsValues.job.radiologist}'`;
+		const sqlReferringphys = `SELECT referring_phys FROM main.orders WHERE referring_phys IS NOT NULL`;
 		const radiologistsList = (await conn.query(sqlRadiolgists)).rows.map(
 			(r) => {
 				return { value: r.username, text: r.full_name };
+			}
+		) as { value: string; text: string }[];
+		const referringPhysList = (await conn.query(sqlReferringphys)).rows.map(
+			(r) => {
+				return { value: r.referring_phys, text: r.referring_phys };
 			}
 		) as { value: string; text: string }[];
 		conn.release();
@@ -66,6 +73,10 @@ export const getInitialData = async (): Promise<
 				case 'byradiologist':
 					console.table(radiologistsList);
 					sb.optionArr = radiologistsList;
+					break;
+				case 'byrefphys':
+					console.table(referringPhysList);
+					sb.optionArr = referringPhysList;
 					break;
 			}
 		});

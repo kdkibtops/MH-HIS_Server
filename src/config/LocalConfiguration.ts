@@ -33,6 +33,7 @@ export enum serviceAction {
 }
 
 import localconfiguration from './localConfig.json';
+import { APPDICOMServerStorage } from '../DICOM/DICOMServer';
 
 // Logic is added that:
 // Any addition either in the JSON file or this ts file will be syncronized,
@@ -271,6 +272,7 @@ const localConfigObject = {
 	LocalAConfig,
 	DBTablesMap,
 };
+const APPDICOMSERVER = APPDICOMServerStorage;
 
 export const updateLoacalConfigJSON = async () => {
 	try {
@@ -278,7 +280,12 @@ export const updateLoacalConfigJSON = async () => {
 		const jsconfigurationFile = path.join(__dirname, 'localConfig.json');
 		const tsDirname = __dirname.replace('dist', 'src');
 		const tsConfigurationFile = path.join(tsDirname, 'localConfig.json');
-		const data = { ...localconfiguration, LocalAConfig, DBTablesMap };
+		const data = {
+			...localconfiguration,
+			LocalAConfig,
+			DBTablesMap,
+			APPDICOMSERVER,
+		};
 		try {
 			const jsonData = readFileSync(tsConfigurationFile, {
 				flag: 'r',

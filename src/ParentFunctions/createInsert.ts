@@ -1,7 +1,7 @@
-import { ORDER, Order } from '../Models/Orders';
+import { ORDER } from '../Models/Orders';
 import { PATIENT } from '../Models/Patients';
 import { PROCEDURE } from '../Models/Procedures';
-import { STUDY, Study } from '../Models/Studies';
+import { STUDY } from '../Models/Studies';
 import { USER } from '../Models/Users';
 import { dataTypes } from '../TypesTrial/RequestTypes';
 import {
@@ -13,7 +13,7 @@ import {
 } from '../config/LocalConfiguration';
 import { getDateInEgypt } from '../config/getDate';
 import { REQBODY } from '../config/types';
-import client from '../database';
+import getPGClient from '../getPGClient';
 import { createSQLinsert } from '../helpers/createSQLString';
 
 function createInsertFunction(tableName: string): Function {
@@ -91,13 +91,11 @@ function createInsertFunction(tableName: string): Function {
 					values
 				);
 				console.log(SQL);
-				const conn = await client.connect();
-				const result = await conn.query(SQL);
-				conn.release();
+				const result = await getPGClient(SQL, [], new Error().stack);
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
-					entCount: result.rowCount,
-					data: result.rows,
+					entCount: result ? result.rowCount : 0,
+					data: result ? result.rows : [],
 				};
 			} else {
 				// wE SHOULD NOT REACH THIS POINT, SO IT IS WRITTEN ONLY TO AVOID RETURN ERRORS

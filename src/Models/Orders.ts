@@ -16,9 +16,10 @@ import createShowAllFunction from '../ParentFunctions/createShowAll';
 import createSearchFunction from '../ParentFunctions/createSearch';
 
 export type Order = {
-	primaryKey?: string;
+	ind?: number;
 	order_id: string;
 	mrn: string;
+	age: number;
 	study_id: string;
 	o_date: string;
 	o_status: string;
@@ -33,8 +34,10 @@ export type Order = {
 	referring_phys?: string;
 };
 export class ORDER {
+	public ind: number;
 	public order_id: string;
 	public mrn: string;
+	public age: number;
 	public study_id: string;
 	public o_date: string;
 	public o_status: string;
@@ -46,8 +49,10 @@ export class ORDER {
 	public referring_phys: string;
 
 	public constructor(data: Order) {
+		this.ind = data.ind || 0;
 		this.order_id = data.order_id;
 		this.mrn = data.mrn;
+		this.age = data.age || 0;
 		this.study_id = data.study_id;
 		this.o_date = data.o_date;
 		this.o_status = data.o_status;
@@ -101,7 +106,8 @@ export async function insertOrder(
 }
 export async function updateOrder(
 	req: REQBODY,
-	callBackErr?: Function
+	callBackErr?: Function,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -116,11 +122,12 @@ export async function updateOrder(
 > {
 	console.log('Using the new fucntion to update order');
 	const update_order = createUpdateFunction(tableName);
-	return update_order(req, callBackErr);
+	return update_order(req, callBackErr, unusualPrimaryKey);
 }
 export async function deleteOrder(
 	order: Order,
-	callBackErr?: Function
+	callBackErr?: Function,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -135,7 +142,7 @@ export async function deleteOrder(
 > {
 	console.log('Using the new fucntion to delete order');
 	const func = createDeleteFunction(tableName);
-	return func(order, callBackErr);
+	return func(order, callBackErr, unusualPrimaryKey);
 }
 export async function showAllOrders(
 	limited: boolean,
@@ -158,7 +165,9 @@ export async function showAllOrders(
 }
 export async function searchOrders(
 	reqBody: REQBODY,
-	callBackErr?: Function
+	callBackErr?: Function,
+	match?: string,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -173,328 +182,328 @@ export async function searchOrders(
 > {
 	console.log(`Using the new fucntion to search orders`);
 	const func = createSearchFunction(tableName);
-	return func(reqBody.orders, callBackErr);
+	return func(reqBody.orders, callBackErr, match, unusualPrimaryKey);
 }
 
 /**End of finished parent functions */
 
 /** Inserts a new order to the database */
-export async function insertOrder_(
-	reqBody: REQBODY,
-	callBackErr?: Function
-): Promise<
-	| {
-			feedback: serviceStatus.success;
-			entCount: number;
-			data: Order[] | unknown[];
-	  }
-	| {
-			feedback: serviceStatus.failed;
-			entCount: 0;
-			data: Error;
-	  }
-> {
-	try {
-		const OriginalOrder = reqBody.orders;
-		const order = new ORDER(OriginalOrder);
-		for (const i in order) {
-			if (
-				!order[i as keyof typeof order] ||
-				order[i as keyof typeof order] === ''
-			) {
-				delete order[i as keyof typeof order];
-			}
-		}
-		const columnNames = Object.keys(order);
-		const values = Object.values(order);
-		columnNames.push('last_update');
-		values.push(
-			new Date().toLocaleString('en-GB', {
-				// to get the current time zone of the server
-				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-			})
-		);
-		const SQL = sqlQueries.createSQLinsert(`main.orders`, columnNames, values);
-		console.log(SQL);
-		const conn = await client.connect();
-		const result = await conn.query(SQL);
-		conn.release();
-		return {
-			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
-			data: result.rows,
-		};
-	} catch (error) {
-		if (callBackErr) {
-			callBackErr(error as Error);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		} else {
-			console.log(`Error: ${error}`);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		}
-	}
-}
+// export async function insertOrder_(
+// 	reqBody: REQBODY,
+// 	callBackErr?: Function
+// ): Promise<
+// 	| {
+// 			feedback: serviceStatus.success;
+// 			entCount: number;
+// 			data: Order[] | unknown[];
+// 	  }
+// 	| {
+// 			feedback: serviceStatus.failed;
+// 			entCount: 0;
+// 			data: Error;
+// 	  }
+// > {
+// 	try {
+// 		const OriginalOrder = reqBody.orders;
+// 		const order = new ORDER(OriginalOrder);
+// 		for (const i in order) {
+// 			if (
+// 				!order[i as keyof typeof order] ||
+// 				order[i as keyof typeof order] === ''
+// 			) {
+// 				delete order[i as keyof typeof order];
+// 			}
+// 		}
+// 		const columnNames = Object.keys(order);
+// 		const values = Object.values(order);
+// 		columnNames.push('last_update');
+// 		values.push(
+// 			new Date().toLocaleString('en-GB', {
+// 				// to get the current time zone of the server
+// 				timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+// 			})
+// 		);
+// 		const SQL = sqlQueries.createSQLinsert(`main.orders`, columnNames, values);
+// 		// console.log(SQL);
+// 		const conn = await client.connect();
+// 		const result = await conn.query(SQL);
+// 		conn.release();
+// 		return {
+// 			feedback: LocalAConfig.serviceStatus.success,
+// 			entCount: result.rowCount,
+// 			data: result.rows,
+// 		};
+// 	} catch (error) {
+// 		if (callBackErr) {
+// 			callBackErr(error as Error);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		} else {
+// 			console.log(`Error: ${error}`);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		}
+// 	}
+// }
 
-/** Gets one order in the database by mrn*/
-export async function searchOrders_(
-	reqBody: REQBODY,
-	callBackErr?: Function
-): Promise<
-	| {
-			feedback: serviceStatus.success;
-			entCount: number;
-			data: Order[] | unknown[];
-	  }
-	| {
-			feedback: serviceStatus.failed;
-			entCount: 0;
-			data: Error;
-	  }
-> {
-	try {
-		const OriginalOrder = reqBody.orders;
-		const order = new ORDER(OriginalOrder);
+// /** Gets one order in the database by mrn*/
+// export async function searchOrders_(
+// 	reqBody: REQBODY,
+// 	callBackErr?: Function
+// ): Promise<
+// 	| {
+// 			feedback: serviceStatus.success;
+// 			entCount: number;
+// 			data: Order[] | unknown[];
+// 	  }
+// 	| {
+// 			feedback: serviceStatus.failed;
+// 			entCount: 0;
+// 			data: Error;
+// 	  }
+// > {
+// 	try {
+// 		const OriginalOrder = reqBody.orders;
+// 		const order = new ORDER(OriginalOrder);
 
-		const orderID = order?.order_id || 'null';
-		const SQL = sqlQueries.createSQLshowOneOnly(
-			'main.orders',
-			'order_id',
-			orderID,
-			[],
-			'order_id'
-		);
-		console.log(SQL);
-		const conn = await client.connect();
-		const result = await conn.query(SQL);
-		conn.release();
-		return {
-			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
-			data: result.rows,
-		};
-	} catch (error) {
-		if (callBackErr) {
-			callBackErr(error as Error);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		} else {
-			console.log(`Error: ${error}`);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		}
-	}
-}
+// 		const orderID = order?.order_id || 'null';
+// 		const SQL = sqlQueries.createSQLshowOneOnly(
+// 			'main.orders',
+// 			'order_id',
+// 			orderID,
+// 			[],
+// 			'order_id'
+// 		);
+// 		// console.log(SQL);
+// 		const conn = await client.connect();
+// 		const result = await conn.query(SQL);
+// 		conn.release();
+// 		return {
+// 			feedback: LocalAConfig.serviceStatus.success,
+// 			entCount: result.rowCount,
+// 			data: result.rows,
+// 		};
+// 	} catch (error) {
+// 		if (callBackErr) {
+// 			callBackErr(error as Error);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		} else {
+// 			console.log(`Error: ${error}`);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		}
+// 	}
+// }
 
-/** Updates existing order in the database */
-export async function updateOrder_(
-	reqBody: REQBODY,
-	callBackErr?: Function
-): Promise<
-	| {
-			feedback: serviceStatus.success;
-			entCount: number;
-			data: Order[] | unknown[];
-	  }
-	| {
-			feedback: serviceStatus.failed;
-			entCount: 0;
-			data: Error;
-	  }
-> {
-	try {
-		const OriginalOrder = reqBody.orders;
-		const order = new ORDER(OriginalOrder);
-		// to avoid database errors in inserting nulls
-		for (const i in order) {
-			if (
-				!order[i as keyof typeof order] ||
-				order[i as keyof typeof order] === ''
-			) {
-				delete order[i as keyof typeof order];
-			}
-		}
-		const columnNames = Object.keys(order);
-		const values = Object.values(order);
-		columnNames.push('last_update');
-		values.push(getDateInEgypt());
-		const SQL = sqlQueries.createSQLupdate(
-			`main.orders`,
-			columnNames,
-			values,
-			'order_id',
-			order.order_id
-		);
-		const conn = await client.connect();
-		const result = await conn.query(SQL);
-		conn.release();
-		return {
-			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
-			data: result.rows,
-		};
-	} catch (error) {
-		if (callBackErr) {
-			callBackErr(error as Error);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		} else {
-			console.log(`Error: ${error}`);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		}
-	}
-}
+// /** Updates existing order in the database */
+// export async function updateOrder_(
+// 	reqBody: REQBODY,
+// 	callBackErr?: Function
+// ): Promise<
+// 	| {
+// 			feedback: serviceStatus.success;
+// 			entCount: number;
+// 			data: Order[] | unknown[];
+// 	  }
+// 	| {
+// 			feedback: serviceStatus.failed;
+// 			entCount: 0;
+// 			data: Error;
+// 	  }
+// > {
+// 	try {
+// 		const OriginalOrder = reqBody.orders;
+// 		const order = new ORDER(OriginalOrder);
+// 		// to avoid database errors in inserting nulls
+// 		for (const i in order) {
+// 			if (
+// 				!order[i as keyof typeof order] ||
+// 				order[i as keyof typeof order] === ''
+// 			) {
+// 				delete order[i as keyof typeof order];
+// 			}
+// 		}
+// 		const columnNames = Object.keys(order);
+// 		const values = Object.values(order);
+// 		columnNames.push('last_update');
+// 		values.push(getDateInEgypt());
+// 		const SQL = sqlQueries.createSQLupdate(
+// 			`main.orders`,
+// 			columnNames,
+// 			values,
+// 			'order_id',
+// 			order.order_id
+// 		);
+// 		const conn = await client.connect();
+// 		const result = await conn.query(SQL);
+// 		conn.release();
+// 		return {
+// 			feedback: LocalAConfig.serviceStatus.success,
+// 			entCount: result.rowCount,
+// 			data: result.rows,
+// 		};
+// 	} catch (error) {
+// 		if (callBackErr) {
+// 			callBackErr(error as Error);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		} else {
+// 			console.log(`Error: ${error}`);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		}
+// 	}
+// }
 
-/** Returns all orders in the database*/
-export async function showAllOrders_(
-	limited: boolean,
-	callBackErr?: Function
-): Promise<
-	| {
-			feedback: serviceStatus.success;
-			entCount: number;
-			data: Order[] | unknown[];
-	  }
-	| {
-			feedback: serviceStatus.failed;
-			entCount: 0;
-			data: Error;
-	  }
-> {
-	try {
-		console.log('start');
-		let SQL = sqlQueries.createSQLshowAll('main.orders', []);
-		SQL += ` LEFT JOIN main.patients
-				ON main.patients.mrn = main.orders.mrn`;
-		SQL += ` LEFT JOIN main.studies
-				ON main.studies.study_id = main.orders.study_id`;
-		SQL += ` ORDER BY o_date DESC LIMIT 50`;
-		console.log('end');
-		const conn = await client.connect();
-		const result = await conn.query(SQL);
-		conn.release();
-		// const final = limited
-		// 	? {
-		// 			feedback: LocalAConfig.serviceStatus.success,
-		// 			entCount: result.rowCount,
-		// 			data: result.rows.map((order) => {
-		// 				return {
-		// 					order_id: order.order_id,
-		// 					radiologist: order.radiologist,
-		// 				};
-		// 			}),
-		// 	  }
-		// 	: {
-		// 			feedback: LocalAConfig.serviceStatus.success,
-		// 			entCount: result.rowCount,
-		// 			data: result.rows,
-		// 	  };
-		// return final;
-		if (limited) {
-			return {
-				feedback: LocalAConfig.serviceStatus.success,
-				entCount: result.rowCount,
-				data: result.rows.map((order) => {
-					return {
-						order_id: order.order_id,
-						radiologist: order.radiologist,
-					};
-				}),
-			};
-		} else {
-			return {
-				feedback: LocalAConfig.serviceStatus.success,
-				entCount: result.rowCount,
-				data: result.rows,
-			};
-		}
-	} catch (error) {
-		if (callBackErr) {
-			callBackErr(error as Error);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		} else {
-			console.log(`Error: ${error}`);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		}
-	}
-}
+// /** Returns all orders in the database*/
+// export async function showAllOrders_(
+// 	limited: boolean,
+// 	callBackErr?: Function
+// ): Promise<
+// 	| {
+// 			feedback: serviceStatus.success;
+// 			entCount: number;
+// 			data: Order[] | unknown[];
+// 	  }
+// 	| {
+// 			feedback: serviceStatus.failed;
+// 			entCount: 0;
+// 			data: Error;
+// 	  }
+// > {
+// 	try {
+// 		console.log('start');
+// 		let SQL = sqlQueries.createSQLshowAll('main.orders', []);
+// 		SQL += ` LEFT JOIN main.patients
+// 				ON main.patients.mrn = main.orders.mrn`;
+// 		SQL += ` LEFT JOIN main.studies
+// 				ON main.studies.study_id = main.orders.study_id`;
+// 		SQL += ` ORDER BY o_date DESC LIMIT 50`;
+// 		console.log('end');
+// 		const conn = await client.connect();
+// 		const result = await conn.query(SQL);
+// 		conn.release();
+// 		// const final = limited
+// 		// 	? {
+// 		// 			feedback: LocalAConfig.serviceStatus.success,
+// 		// 			entCount: result.rowCount,
+// 		// 			data: result.rows.map((order) => {
+// 		// 				return {
+// 		// 					order_id: order.order_id,
+// 		// 					radiologist: order.radiologist,
+// 		// 				};
+// 		// 			}),
+// 		// 	  }
+// 		// 	: {
+// 		// 			feedback: LocalAConfig.serviceStatus.success,
+// 		// 			entCount: result.rowCount,
+// 		// 			data: result.rows,
+// 		// 	  };
+// 		// return final;
+// 		if (limited) {
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.success,
+// 				entCount: result.rowCount,
+// 				data: result.rows.map((order) => {
+// 					return {
+// 						order_id: order.order_id,
+// 						radiologist: order.radiologist,
+// 					};
+// 				}),
+// 			};
+// 		} else {
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.success,
+// 				entCount: result.rowCount,
+// 				data: result.rows,
+// 			};
+// 		}
+// 	} catch (error) {
+// 		if (callBackErr) {
+// 			callBackErr(error as Error);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		} else {
+// 			console.log(`Error: ${error}`);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		}
+// 	}
+// }
 
-/** Deletes existing order from the database */
-export async function deleteOrder_(
-	order: Order,
-	callBackErr?: Function
-): Promise<
-	| {
-			feedback: serviceStatus.success;
-			entCount: number;
-			data: Order[] | unknown[];
-	  }
-	| {
-			feedback: serviceStatus.failed;
-			entCount: 0;
-			data: Error;
-	  }
-> {
-	try {
-		const SQL = sqlQueries.createSQLdelete(
-			`main.orders`,
-			'order_id',
-			order.order_id
-		);
-		const conn = await client.connect();
-		const result = await conn.query(SQL);
-		conn.release();
-		return {
-			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
-			data: result.rows,
-		};
-	} catch (error) {
-		if (callBackErr) {
-			callBackErr(error as Error);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		} else {
-			console.log(`Error: ${error}`);
-			return {
-				feedback: LocalAConfig.serviceStatus.failed,
-				entCount: 0,
-				data: error as Error,
-			};
-		}
-	}
-}
+// /** Deletes existing order from the database */
+// export async function deleteOrder_(
+// 	order: Order,
+// 	callBackErr?: Function
+// ): Promise<
+// 	| {
+// 			feedback: serviceStatus.success;
+// 			entCount: number;
+// 			data: Order[] | unknown[];
+// 	  }
+// 	| {
+// 			feedback: serviceStatus.failed;
+// 			entCount: 0;
+// 			data: Error;
+// 	  }
+// > {
+// 	try {
+// 		const SQL = sqlQueries.createSQLdelete(
+// 			`main.orders`,
+// 			'order_id',
+// 			order.order_id
+// 		);
+// 		const conn = await client.connect();
+// 		const result = await conn.query(SQL);
+// 		conn.release();
+// 		return {
+// 			feedback: LocalAConfig.serviceStatus.success,
+// 			entCount: result.rowCount,
+// 			data: result.rows,
+// 		};
+// 	} catch (error) {
+// 		if (callBackErr) {
+// 			callBackErr(error as Error);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		} else {
+// 			console.log(`Error: ${error}`);
+// 			return {
+// 				feedback: LocalAConfig.serviceStatus.failed,
+// 				entCount: 0,
+// 				data: error as Error,
+// 			};
+// 		}
+// 	}
+// }
 
 /** Searches orders in the database on filters LIKE % no exact match */
 export async function searcFilterhOrders(

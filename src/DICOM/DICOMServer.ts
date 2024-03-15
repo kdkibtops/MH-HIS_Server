@@ -35,9 +35,16 @@ const allOptions = {
 		PACS_PC: {
 			// PACS PC at my Office
 			name: 'PACS PC at my Office',
-			aet: 'RADIANT2',
+			aet: 'RADIANT-PACS',
 			ip: '134.16.66.51',
 			port: 11112,
+		},
+		agouzaUltrasound: {
+			// Ultrasoiund siemens Agouza
+			name: 'Agouza Ultrasound Siemens',
+			aet: 'ACUSONNX3',
+			ip: '134.16.66.221',
+			port: 104,
 		},
 		asusLaptop: {
 			// My Asus Laptop RADIANT
@@ -56,7 +63,8 @@ const allOptions = {
 		thisDICOMServerOnNetwork: {
 			// This DICOM server on network
 			name: 'This DICOM server on network',
-			aet: 'RADIANT',
+			// aet: 'RADIANT',
+			aet: 'MHDICOM',
 			ip: '134.16.66.61',
 			port: 9999,
 		},
@@ -64,9 +72,10 @@ const allOptions = {
 	storagePath: DICOMSTORAGEFOLDER,
 	verbose: false,
 };
+export const APPDICOMServerStorage = allOptions.peers.thisDICOMServer;
 // Options for recieving and storing studies and query on this server
 const scpOptions: storeScpOptions = {
-	source: allOptions.peers.thisDICOMServerOnNetwork,
+	source: APPDICOMServerStorage,
 	peers: Object.values(allOptions.peers),
 	storagePath: allOptions.storagePath,
 	verbose: allOptions.verbose,
@@ -89,6 +98,7 @@ startStoreScp(scpOptions, (result) => {
 			err ? console.log(err) : console.log(`The file was saved to ${filepath}`);
 		});
 	} else {
+		console.log('Peer is requesting study');
 		console.log(msg);
 	}
 });
@@ -126,6 +136,7 @@ export const pushStudy = (StudyInstanceUID: string, AET: string) => {
 
 	const target = allPeers.filter((p) => p.aet === AET);
 	if (target.length > 0) {
+		console.log(`pushing study to ${JSON.stringify(target[0])}`);
 		const scuOptions: storeScuOptions = {
 			//The source I am retrieving from
 			source: allOptions.peers.thisDICOMServerOnNetwork,

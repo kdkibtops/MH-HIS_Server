@@ -1,6 +1,7 @@
 import { dataTypes } from '../TypesTrial/RequestTypes';
 import { DBTablesMap, serviceStatus } from '../config/LocalConfiguration';
 import client from '../database';
+import getPGClient from '../getPGClient';
 import { createSQLshowAll } from '../helpers/createSQLString';
 
 function createShowAllFunction(tableName: string): Function {
@@ -28,6 +29,7 @@ function createShowAllFunction(tableName: string): Function {
 			switch (tableName) {
 				case 'studies':
 					limitedArr = [
+						'ind',
 						'study_id',
 						'modality',
 						'study_name',
@@ -36,19 +38,21 @@ function createShowAllFunction(tableName: string): Function {
 					];
 					break;
 				case 'orders':
-					limitedArr = ['order_id', 'radiologist'];
+					columnsArr = ['orders.ind', 'order_id', 'radiologist'];
+					limitedArr = ['ind', 'order_id', 'radiologist'];
 					extraSQL = `
-					 LEFT JOIN main.patients
+					LEFT JOIN main.patients
 					ON main.patients.mrn = main.orders.mrn
 					LEFT JOIN main.studies
 					ON main.studies.study_id = main.orders.study
 					ORDER BY o_date DESC LIMIT 50`;
 					break;
 				case 'patients':
-					limitedArr = ['patient_name', 'mrn', 'national_id'];
+					limitedArr = ['ind', 'patient_name', 'mrn', 'national_id'];
 					break;
 				case 'users':
 					columnsArr = [
+						'ind',
 						'user_id',
 						'username',
 						'user_role',
@@ -56,10 +60,18 @@ function createShowAllFunction(tableName: string): Function {
 						'email',
 						'full_name',
 					];
-					limitedArr = ['user_id', 'full_name', 'username', 'user_role', 'job'];
+					limitedArr = [
+						'ind',
+						'user_id',
+						'full_name',
+						'username',
+						'user_role',
+						'job',
+					];
 					break;
 				case 'procedures':
 					columnsArr = [
+						'ind',
 						'procedure_id',
 						'procedure_name',
 						'laboratory',
@@ -69,32 +81,32 @@ function createShowAllFunction(tableName: string): Function {
 						'updated_by',
 						'last_update',
 					];
-					limitedArr = ['procedure_id', 'procedure_name'];
+					limitedArr = ['ind', 'procedure_id', 'procedure_name'];
 					extraSQL = ``;
 				default:
 					break;
 			}
 			const SQL = createSQLshowAll(`${schemaName}.${tableName}`, columnsArr);
-			const conn = await client.connect();
-			const result = await conn.query(SQL);
-			conn.release();
+			const result = await getPGClient(SQL, [], new Error().stack);
 
 			if (limited) {
 				return {
 					feedback: serviceStatus.success,
-					entCount: result.rowCount,
+					entCount: result ? result.rowCount : 0,
 					// create new object with the limited keys needed
-					data: result.rows.map((entry) => {
-						return limitedArr.reduce((accumulator, key) => {
-							return { ...accumulator, [key]: entry[key] };
-						}, {});
-					}),
+					data: result
+						? result.rows.map((entry) => {
+								return limitedArr.reduce((accumulator, key) => {
+									return { ...accumulator, [key]: entry[key] };
+								}, {});
+						  })
+						: [],
 				};
 			} else {
 				return {
 					feedback: serviceStatus.success,
-					entCount: result.rowCount,
-					data: result.rows,
+					entCount: result ? result.rowCount : 0,
+					data: result ? result.rows : [],
 				};
 			}
 		} catch (error) {

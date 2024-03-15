@@ -34,6 +34,8 @@ export type REQBODY = {
 export type aggregationMETHOD = 'AVG' | 'SUM' | 'MIN' | 'MAX' | 'COUNT';
 export type numberMatch = '>' | '<' | '>=' | '<=' | '=';
 export type stringMatch =
+	| '='
+	| 'startsWith'
 	| 'anyMatch'
 	| 'matchCaseOnly'
 	| 'matchWholeWordOnly'

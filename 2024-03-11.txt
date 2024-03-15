@@ -1,0 +1,9 @@
+**********Start**********
+Query: SELECT * FROM main.orders
+Duration: 3 ms
+Rows:227
+**********End********************Start**********
+Query: SELECT * FROM main.orders
+Duration: 3 ms
+Rows:227
+**********End**********

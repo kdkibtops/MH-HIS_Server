@@ -96,7 +96,6 @@ const updateDB = async (callBackErr?: Function) => {
 							? 'Female'
 							: 'Undefined'
 					}`;
-
 					// Check study in postgreSQL DB, if found retrieve study code else insert new study, this is becasue in study only I search for study
 					// by study name not study_id to avoid duplication of name as much as possible, if the name is present I should use the same study code
 					// instead of creating new study with the same name
@@ -105,7 +104,8 @@ const updateDB = async (callBackErr?: Function) => {
 					const stuConn = await client.connect();
 					const study = await stuConn.query(checkStudyFoundSQL);
 					const studyFound = study.rowCount;
-					const retrievedStudyCode = study.rows[0]['study_id'];
+					const retrievedStudyCode =
+						studyFound !== 0 ? study.rows[0]['study_id'] : null;
 					if (studyFound === 0 || order['StudyDescription'] === null) {
 						const createStudySQL = `INSERT INTO main.studies 
 							(study_id, study_name,modality,updated_by) 

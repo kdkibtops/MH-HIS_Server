@@ -10,8 +10,7 @@ import {
 	newSEARCHCRITERIA,
 	tableObject,
 } from '../config/types';
-import client from '../database';
-import { createSQLshowAll } from '../helpers/createSQLString';
+import getPGClient from '../getPGClient';
 import {
 	SELECTSQLQUERY,
 	legacy_trialAddFilterSQL,
@@ -171,13 +170,18 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 								'patients',
 								'patients',
 								'patients',
+								'patients',
+								'patients',
+								'patients',
 							],
 							columnsNames: [
 								'ind',
 								'mrn',
+								'rank',
+								'category',
+								'status',
 								'patient_name',
 								'national_id',
-								'age',
 								'dob',
 								'gender',
 								'contacts',
@@ -188,9 +192,11 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 							asColumnsName: [
 								'patients_ind',
 								'mrn',
+								null,
+								null,
+								null,
 								'patient_name',
 								'national_id',
-								'age',
 								'dob',
 								'gender',
 								'contacts',
@@ -377,14 +383,14 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 			const SQL = sqlQuery.BUILDSQL();
 			if (SQL) {
 				console.log(SQL[0]);
-				console.log(SQL[1]);
-				const conn = await client.connect();
-				const result = await conn.query(SQL[0]);
-				const entCount = (await conn.query(SQL[1])).rowCount;
-				conn.release();
-				const updatedArr = result.rows.map((r) => {
-					return { ...r, ind: r[indexKey] };
-				});
+				const result = await getPGClient(SQL[0], [], new Error().stack);
+				const res = await getPGClient(SQL[1], [], new Error().stack);
+				const entCount = res ? res.rowCount : 0;
+				const updatedArr = result
+					? result.rows.map((r) => {
+							return { ...r, ind: r[indexKey] };
+					  })
+					: [];
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
 					entCount: entCount,
@@ -427,326 +433,3 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 	return showAllOnCriteria;
 }
 export default createShowAllOnCriteriaFunction;
-
-function legacy_createShowAllOnCriteriaFunction(tableName: string): Function {
-	const showAllOnCriteria = async (
-		criteria: SEARCHCRITERIA,
-		callBackErr?: Function
-	): Promise<
-		| {
-				feedback: serviceStatus.success;
-				entCount: number;
-				data: dataTypes;
-		  }
-		| {
-				feedback: serviceStatus.failed;
-				entCount: 0;
-				data: Error;
-		  }
-	> => {
-		try {
-			let indexKey: string;
-			let SQL: string | null;
-			switch (tableName) {
-				case 'main.studies':
-					indexKey = 'studies_ind';
-					SQL = createSQLshowAll(
-						'main.studies',
-						[
-							'main.studies.ind',
-							'main.studies.study_id',
-							'main.studies.modality',
-							'main.studies.study_name',
-							'main.studies.arabic_name',
-							'main.studies.price',
-							'main.studies.last_update',
-							'main.studies.updated_by',
-							'AVG (main.orders.radiation_dose)',
-						],
-						undefined,
-						[
-							'studies_ind',
-							'study_id',
-							'modality',
-							'study_name',
-							'arabic_name',
-							'price',
-							'last_update',
-							'updated_by',
-							'average_radiation_dose',
-						]
-					);
-					SQL += `
-                    LEFT JOIN main.orders 
-                    ON main.orders.study_id=main.studies.study_id 
-                    `;
-					// If criteria has lastEntryInd this means that this fetch is a continuation of previous request so will start with the last entry ind
-					// Becasuse patient are orderd in descending order according to the ind so I am using less than operator instead of greater than
-					SQL += criteria.lastEntryInd
-						? ` WHERE main.studies.ind < ${criteria.lastEntryInd} 
-            `
-						: '';
-					const filterStudies =
-						criteria.otherFilters &&
-						criteria.otherFilters.filter((f) => f.checked);
-					if (filterStudies) {
-						// addFiltersSql(filterStudies, criteria.lastEntryInd)?.forEach(
-						// 	(sql) => (SQL += sql)
-						// );
-						SQL += legacy_trialAddFilterSQL(
-							filterStudies,
-							criteria.lastEntryInd
-						);
-					}
-					SQL += `
-                            GROUP BY main.studies.study_id
-                            ORDER BY studies.ind DESC
-                    `;
-					if (criteria.LIMIT) {
-						SQL += `LIMIT ${criteria.LIMIT} `;
-					}
-
-					break;
-				case 'main.orders':
-					indexKey = 'orders_ind';
-					SQL = createSQLshowAll(
-						'main.orders',
-						[
-							'main.orders.*',
-							'main.orders.ind',
-							'main.patients.*',
-							'main.studies.study_id',
-							'main.studies.study_name',
-							'main.studies.arabic_name',
-							'main.studies.modality',
-							'main.studies.price',
-						],
-						undefined,
-						[null, 'orders_ind', null, null, null, null, null, null]
-					);
-					SQL += ` 
-            LEFT JOIN main.patients
-            ON main.patients.mrn = main.orders.mrn 
-            `;
-					SQL += `LEFT JOIN main.studies
-            ON main.studies.study_id = main.orders.study_id
-            `;
-					// If criteria has lastEntryInd this means that this fetch is a continuation of previous request so will start with the last entry ind
-					// Becasuse order are orderd in descending order according to the ind so I am using less than operator instead of greater than
-					SQL += criteria.lastEntryInd
-						? `WHERE main.orders.ind< ${criteria.lastEntryInd} 
-            `
-						: '';
-					const filterOrders =
-						criteria.otherFilters &&
-						criteria.otherFilters.filter((f) => f.checked);
-					if (filterOrders) {
-						// addFiltersSql(filterOrders, criteria.lastEntryInd)?.forEach(
-						// 	(sql) => {
-						// 		SQL += sql;
-						// 	}
-						// );
-						SQL += legacy_trialAddFilterSQL(
-							filterOrders,
-							criteria.lastEntryInd
-						);
-					}
-
-					SQL += `ORDER BY orders.ind DESC 
-            `;
-					if (criteria.LIMIT) {
-						SQL += `LIMIT ${criteria.LIMIT} `;
-					}
-
-					const newSQL = (SQL.split('FROM')[0] +=
-						`,main.studies.updated_by AS study_updated_by FROM` +
-						SQL.split('FROM')[1]);
-
-					break;
-				case 'main.patients':
-					indexKey = 'patients_ind';
-					SQL = createSQLshowAll(
-						'main.patients',
-						[
-							'main.patients.ind',
-							'main.patients.mrn',
-							'main.patients.patient_name',
-							'main.patients.national_id',
-							'main.patients.age',
-							'main.patients.dob',
-							'main.patients.gender',
-							'main.patients.contacts',
-							'main.patients.email',
-							'main.patients.updated_by',
-							'main.patients.last_update',
-							'SUM(main.orders.radiation_dose)',
-						],
-						undefined,
-						[
-							'patients_ind',
-							'mrn',
-							'patient_name',
-							'national_id',
-							'age',
-							'dob',
-							'gender',
-							'contacts',
-							'email',
-							'updated_by',
-							'last_update',
-							'cumulative_dose',
-						]
-					);
-					SQL += `
-                    LEFT JOIN main.orders 
-                    ON main.orders.mrn=main.patients.mrn 
-                    `;
-					// If criteria has lastEntryInd this means that this fetch is a continuation of previous request so will start with the last entry ind
-					// Becasuse patient are orderd in descending order according to the ind so I am using less than operator instead of greater than
-					SQL += criteria.lastEntryInd
-						? ` WHERE main.patients.ind < ${criteria.lastEntryInd} 
-            `
-						: '';
-
-					const filterPatients =
-						criteria.otherFilters &&
-						criteria.otherFilters.filter((f) => f.checked);
-					if (filterPatients) {
-						// addFiltersSql(filterPatients, criteria.lastEntryInd)?.forEach(
-						// 	(sql) => (SQL += sql)
-						// );
-						SQL += legacy_trialAddFilterSQL(
-							filterPatients,
-							criteria.lastEntryInd
-						);
-					}
-					SQL += `
-                    GROUP BY main.patients.mrn
-                    ORDER BY patients.ind DESC 
-            `;
-					if (criteria.LIMIT) {
-						SQL += `LIMIT ${criteria.LIMIT} `;
-					}
-					break;
-				case 'main.users':
-					indexKey = 'users_ind';
-					SQL = createSQLshowAll(
-						'main.users',
-						[
-							'main.users.ind',
-							'main.users.user_id',
-							'main.users.username',
-							'main.users.full_name',
-							'main.users.user_role',
-							'main.users.job',
-							'main.users.email',
-							// 'main.users.user_config',
-							// 'main.users.uploads',
-							'main.users.last_update',
-							'COUNT(main.orders.radiologist)',
-						],
-						undefined,
-						[
-							'users_ind',
-							'user_id',
-							'username',
-							'full_name',
-							'user_role',
-							'job',
-							'email',
-							// 'user_config',
-							// 'uploads',
-							'last_update',
-							'reports_count',
-						]
-					);
-
-					// If criteria has lastEntryInd this means that this fetch is a continuation of previous request so will start with the last entry ind
-					// Becasuse patient are orderd in descending order according to the ind so I am using less than operator instead of greater than
-					// no need for last entry index here because we need to get all users each time
-					// 		SQL += criteria.lastEntryInd
-					// 			? ` WHERE main.users.ind < ${criteria.lastEntryInd}
-					// `
-					// 			: '';
-					// I will use left join to get all users even if they don't have reports
-					SQL += `
-            LEFT JOIN main.orders
-            ON main.orders.radiologist=main.users.username
-            `;
-					// If criteria has lastEntryInd this means that this fetch is a continuation of previous request so will start with the last entry ind
-					// Becasuse order are orderd in descending order according to the ind so I am using less than operator instead of greater than
-					SQL += criteria.lastEntryInd
-						? `WHERE main.orders.ind< ${criteria.lastEntryInd} 
-            `
-						: '';
-					const filterUsers =
-						criteria.otherFilters &&
-						criteria.otherFilters.filter((f) => f.checked);
-					if (filterUsers) {
-						// addFiltersSql(filterUsers, criteria.lastEntryInd)?.forEach(
-						// 	(sql) => (SQL += sql)
-						// );
-						SQL += legacy_trialAddFilterSQL(filterUsers, criteria.lastEntryInd);
-					}
-					SQL += `
-                        GROUP BY main.users.username
-                        ORDER BY users.ind DESC
-                `;
-					if (criteria.LIMIT) {
-						SQL += `LIMIT ${criteria.LIMIT} `;
-					}
-					break;
-				default:
-					SQL = null;
-					break;
-			}
-			if (SQL) {
-				console.log(SQL);
-				const conn = await client.connect();
-				const result = await conn.query(SQL);
-				const entCount = (await conn.query(SQL[1])).rowCount;
-				conn.release();
-
-				const updatedArr = result.rows.map((r) => {
-					return { ...r, ind: r[indexKey] };
-				});
-				return {
-					feedback: LocalAConfig.serviceStatus.success,
-					entCount: entCount,
-					data: updatedArr,
-				};
-			} else {
-				// wE SHOULD NOT REACH THIS POINT, SO IT IS WRITTEN ONLY TO AVOID RETURN ERRORS
-				return (() => {
-					console.error(
-						`Can't create showAllOnCriteria function for ${tableName}`
-					);
-					return {
-						feedback: LocalAConfig.serviceStatus.failed,
-						entCount: 0,
-						data: new Error(
-							`Can't create showAllOnCriteria function for ${tableName}`
-						),
-					};
-				})();
-			}
-		} catch (error) {
-			if (callBackErr) {
-				callBackErr(error as Error);
-				return {
-					feedback: LocalAConfig.serviceStatus.failed,
-					entCount: 0,
-					data: error as Error,
-				};
-			} else {
-				console.log(`Error: ${error}`);
-				return {
-					feedback: LocalAConfig.serviceStatus.failed,
-					entCount: 0,
-					data: error as Error,
-				};
-			}
-		}
-	};
-	return showAllOnCriteria;
-}

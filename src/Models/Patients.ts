@@ -1,7 +1,5 @@
 import client from '../database';
-import * as sqlQueries from '../helpers/createSQLString';
 import { QueryObject, REQBODY, SEARCHCRITERIA } from '../config/types';
-import { getDateInEgypt } from '../config/getDate';
 import {
 	DBTablesMap,
 	LocalAConfig,
@@ -15,12 +13,14 @@ import createShowAllFunction from '../ParentFunctions/createShowAll';
 import createSearchFunction from '../ParentFunctions/createSearch';
 
 export type Patient = {
-	primaryKey?: string;
+	ind?: number;
 	mrn: string;
+	category?: string;
+	rank?: string;
+	status?: string;
 	patient_name: string;
 	national_id?: string;
 	dob?: string;
-	age?: string;
 	gender?: string;
 	email?: string;
 	contacts?: string;
@@ -29,24 +29,30 @@ export type Patient = {
 };
 
 export class PATIENT {
+	public ind: number;
 	public mrn: string;
+	public category: string;
+	public rank: string;
+	public status: string;
 	public patient_name: string;
 	public national_id: string;
 	public dob: string;
-	public age: string;
 	public gender: string;
 	public contacts: string;
 	public email: string;
 	public updated_by: string;
 
 	constructor(data: Patient) {
+		this.ind = data.ind || 0;
 		this.mrn = data.mrn;
+		this.category = data.category || '';
+		this.rank = data.rank || '';
+		this.status = data.status || '';
 		this.patient_name = data.patient_name;
 		this.national_id = data.national_id || '';
 		this.dob = data.dob || '';
 		this.gender = data.gender || '';
 		this.contacts = data.contacts || '';
-		this.age = data.age || '';
 		this.email = data.email || '';
 		this.updated_by = data.updated_by || '';
 	}
@@ -93,7 +99,8 @@ export async function showAllPatientsOnCriteria(
 }
 export async function updatePatient(
 	req: REQBODY,
-	callBackErr?: Function
+	callBackErr?: Function,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -108,11 +115,12 @@ export async function updatePatient(
 > {
 	console.log('Using the new fucntion to update patient');
 	const update_patient = createUpdateFunction(tableName);
-	return update_patient(req, callBackErr);
+	return update_patient(req, callBackErr, unusualPrimaryKey);
 }
 export async function deletePatient(
 	patient: Patient,
-	callBackErr?: Function
+	callBackErr?: Function,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -127,17 +135,18 @@ export async function deletePatient(
 > {
 	console.log('Using the new fucntion to delete patient');
 	const func = createDeleteFunction(tableName);
-	return func(patient, callBackErr);
+	return func(patient, callBackErr, unusualPrimaryKey);
 }
 export async function searchPatients(
 	reqBody: REQBODY,
-	callBackErr?: Function
+	callBackErr?: Function,
+	match?: string,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
 			entCount: number;
 			data: Patient[];
-			// data:[];
 	  }
 	| {
 			feedback: serviceStatus.failed;
@@ -145,9 +154,8 @@ export async function searchPatients(
 			data: Error;
 	  }
 > {
-	console.log('Using the new fucntion to search Patient');
 	const func = createSearchFunction(tableName);
-	return func(reqBody.patients, callBackErr);
+	return func(reqBody.patients, callBackErr, match, unusualPrimaryKey);
 }
 export async function showAllPatients(
 	limited: boolean,

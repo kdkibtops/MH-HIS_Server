@@ -92,7 +92,8 @@ export function createSQLdelete(
 	filterValue: string
 ): string {
 	let SQL = `DELETE FROM ${tableName} WHERE ${filterColumn} = '${
-		typeof filterValue === 'string' ? filterValue.toLowerCase() : filterValue
+		// typeof filterValue === 'string' ? filterValue.toLowerCase() :
+		filterValue
 	}' RETURNING *`;
 	return SQL;
 }

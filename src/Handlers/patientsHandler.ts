@@ -62,7 +62,8 @@ async function insertNewPatient(req: Request, res: Response) {
 						},
 						err
 					);
-				}
+				},
+				'anyMatch'
 			);
 			if (
 				patientPresentResponse.feedback ===
@@ -91,17 +92,21 @@ async function insertNewPatient(req: Request, res: Response) {
 					LocalAConfig.serviceStatus.success &&
 				patientPresentResponse.entCount > 0
 			) {
-				const updatedPatient = await updatePatient(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const updatedPatient = await updatePatient(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (updatedPatient.feedback === LocalAConfig.serviceStatus.success) {
 					// const updatedData = {
 					// 	...data,
@@ -244,7 +249,7 @@ async function showAllPatientsInDatabase(req: Request, res: Response) {
 					action: LocalAConfig.serviceAction.failed,
 					data: {
 						message:
-							'Unknown error in processing searchPatientsDatabase () in patients handler',
+							'Unknown error in processing showAllPatientsInDatabase () in patients handler',
 					},
 				},
 				error
@@ -300,7 +305,7 @@ async function limitedShowAllPatientsInDatabase(req: Request, res: Response) {
 					action: LocalAConfig.serviceAction.failed,
 					data: {
 						message:
-							'Unknown error in processing searchPatientsDatabase () in patients handler',
+							'Unknown error in processing limitedShowAllPatientsInDatabase () in patients handler',
 					},
 				},
 				error
@@ -349,25 +354,30 @@ async function updateOldPatient(req: Request, res: Response) {
 						},
 						err
 					);
-				}
+				},
+				'=',
+				'ind'
 			);
 			if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
 				patientPresentResponse.entCount > 0
 			) {
-				const patientToUpdate = await updatePatient(reqBody, (err: Error) => {
-					// const data = await updatePatient(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const patientToUpdate = await updatePatient(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (patientToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					return sendAcceptedUpdatedResponse(res, newToken, [
 						...(patientToUpdate.data as Patient[]),
@@ -446,24 +456,30 @@ async function deleteOldPatient(req: Request, res: Response) {
 						},
 						err
 					);
-				}
+				},
+				'=',
+				'ind'
 			);
 			if (
 				patientPresentResponse.feedback ===
 					LocalAConfig.serviceStatus.success &&
 				patientPresentResponse.entCount > 0
 			) {
-				const patientToDelete = await deletePatient(patient, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const patientToDelete = await deletePatient(
+					patient,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (patientToDelete.feedback === LocalAConfig.serviceStatus.success) {
 					return sendSuccessfulResponse(
 						res,

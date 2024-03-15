@@ -1,15 +1,15 @@
 import { dataTypesEntry } from './../TypesTrial/RequestTypes';
 import { dataTypes } from '../TypesTrial/RequestTypes';
 import { DBTablesMap, serviceStatus } from '../config/LocalConfiguration';
-import { createSQLshowOneOnly } from '../helpers/createSQLString';
-import client from '../database';
 import { SELECTSQLQUERY } from '../helpers/filtersSQL';
-import { stringMatch, stringORNull } from '../config/types';
+import { numberMatch, stringMatch, stringORNull } from '../config/types';
+import getPGClient from '../getPGClient';
 function createSearchFunction(tableName: string): Function {
 	const searchFunction = async (
 		entry: dataTypesEntry,
 		callBackErr?: Function,
-		match?: stringMatch
+		match?: '=',
+		unusualPrimaryKey?: string
 	): Promise<
 		| {
 				feedback: serviceStatus.success;
@@ -66,12 +66,11 @@ function createSearchFunction(tableName: string): Function {
 			const schemaName =
 				DBTablesMap[tableName as keyof typeof DBTablesMap].shcema;
 			DBTablesMap[tableName as keyof typeof DBTablesMap].shcema;
-			const filterColumn =
-				DBTablesMap[tableName as keyof typeof DBTablesMap].UID_Column;
+			const filterColumn = unusualPrimaryKey
+				? unusualPrimaryKey
+				: DBTablesMap[tableName as keyof typeof DBTablesMap].UID_Column;
 			if (filterColumn) {
-				const filterValue = entry.primaryKey
-					? entry.primaryKey
-					: (entry[filterColumn as keyof typeof entry] as string);
+				const filterValue = entry[filterColumn as keyof typeof entry];
 				const SQL = new SELECTSQLQUERY();
 				SQL.SELECT(
 					{ tablesNames: tableName, columnsNames: '*', asColumnsName: null },
@@ -81,17 +80,18 @@ function createSearchFunction(tableName: string): Function {
 					[tableName],
 					[filterColumn],
 					[filterValue],
-					[match ? match : 'exactMatchAll']
+					[match ? match : '=']
 				);
 				const sql = SQL.BUILDSQL();
-				const conn = await client.connect();
-				const result = await conn.query(sql[0]);
-				const entCount = (await conn.query(sql[1])).rowCount;
-				conn.release();
+				console.log('Seaarch sql:');
+				console.log(sql[0]);
+				const result = await getPGClient(sql[0], [], new Error().stack);
+				const res = await getPGClient(sql[1], [], new Error().stack);
+				const entCount = res ? res.rowCount : 0;
 				return {
 					feedback: serviceStatus.success,
 					entCount: entCount,
-					data: result.rows,
+					data: result ? result.rows : [],
 				};
 			} else {
 				// wE SHOULD NOT REACH THIS POINT, SO IT IS WRITTEN ONLY TO AVOID RETURN ERRORS

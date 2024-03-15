@@ -10,6 +10,7 @@ import {
 } from '../../ResponseHandler/AuthResponse';
 import { sendBadRequestResponse } from '../../ResponseHandler/ClientError';
 import { LocalAConfig } from '../../config/LocalConfiguration';
+import { logError } from '../../helpers/errorLogging';
 
 const authenticationRoutes = Router();
 
@@ -33,14 +34,7 @@ const authenticateUser = async (req: Request, res: Response) => {
 			);
 		}
 		const auth = await authentication(req.body.users, (err: Error) => {
-			sendUnAuthenticated(
-				res,
-				{
-					data: { message: err.message },
-					action: LocalAConfig.serviceStatus.failed,
-				},
-				err
-			);
+			logError(err, req);
 		});
 		if (auth.result === true) {
 			return sendAuthorzationSuccess(res, auth.accessToken, {
@@ -99,12 +93,10 @@ const renewToken = async (req: Request, res: Response) => {
 		}
 	} catch (error) {
 		console.log(`${error}`);
-		res
-			.status(500)
-			.json({
-				data: { error: error, authenticated: false },
-				accessToken: newToken,
-			});
+		res.status(500).json({
+			data: { error: error, authenticated: false },
+			accessToken: newToken,
+		});
 	}
 };
 

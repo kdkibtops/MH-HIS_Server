@@ -16,7 +16,7 @@ import createShowAllFunction from '../ParentFunctions/createShowAll';
 import createSearchFunction from '../ParentFunctions/createSearch';
 
 export type User = {
-	primaryKey?: string;
+	ind?: number;
 	user_id?: number | string;
 	username: string;
 	full_name?: string;
@@ -24,9 +24,11 @@ export type User = {
 	user_role?: number;
 	job?: string;
 	email?: string;
+	verified?: boolean;
 	user_config?: object;
 };
 export class USER {
+	public ind: number;
 	public user_id: number | string;
 	public username: string;
 	public full_name: string;
@@ -34,9 +36,11 @@ export class USER {
 	public user_role: number;
 	public job: string;
 	public email: string;
+	public verified: boolean;
 	public user_config: object | string;
 
 	public constructor(data: User) {
+		this.ind = data.ind || 0;
 		this.user_id = data.user_id || '';
 		this.username = data.username || '';
 		this.full_name = data.full_name || '';
@@ -44,6 +48,7 @@ export class USER {
 		this.user_role = data.user_role || 0;
 		this.job = data.job || '';
 		this.email = data.email || '';
+		this.verified = data.verified || false;
 		this.user_config = data.user_config || {};
 	}
 }
@@ -89,7 +94,8 @@ export async function showAllUsersOnCriteria(
 }
 export async function updateUser(
 	req: REQBODY,
-	callBackErr?: Function
+	callBackErr?: Function,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -104,11 +110,12 @@ export async function updateUser(
 > {
 	console.log('Using the new fucntion to update user');
 	const update_user = createUpdateFunction(tableName);
-	return update_user(req, callBackErr);
+	return update_user(req, callBackErr, unusualPrimaryKey);
 }
 export async function deleteUser(
 	user: User,
-	callBackErr?: Function
+	callBackErr?: Function,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -123,7 +130,7 @@ export async function deleteUser(
 > {
 	console.log('Using the new fucntion to delete user');
 	const func = createDeleteFunction(tableName);
-	return func(user, callBackErr);
+	return func(user, callBackErr, unusualPrimaryKey);
 }
 export async function showAllUsers(
 	limited: boolean,
@@ -147,7 +154,9 @@ export async function showAllUsers(
 }
 export async function searchUsers(
 	reqBody: REQBODY,
-	callBackErr?: Function
+	callBackErr?: Function,
+	match?: string,
+	unusualPrimaryKey?: string
 ): Promise<
 	| {
 			feedback: serviceStatus.success;
@@ -162,7 +171,7 @@ export async function searchUsers(
 > {
 	console.log(`Using the new fucntion to search orders`);
 	const func = createSearchFunction(`${tableName}`);
-	return func(reqBody.users, callBackErr, 'anyMatch');
+	return func(reqBody.users, callBackErr, match, unusualPrimaryKey);
 }
 
 /**End of finished parent functions */

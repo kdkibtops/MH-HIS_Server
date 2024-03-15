@@ -38,17 +38,21 @@ async function insertNewUser(req: Request, res: Response) {
 		} else {
 			const user = reqBody.users;
 			// checks if user is present or not
-			const userPresentResponse = await searchUsers(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
+			const userPresentResponse = await searchUsers(
+				reqBody,
+				(err: Error) => {
+					sendBadRequestResponse(
+						res,
+						{
+							accessToken: newToken,
+							data: { message: err.message },
+							action: LocalAConfig.serviceAction.failed,
+						},
+						err
+					);
+				},
+				'anyMatch'
+			);
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				userPresentResponse.entCount === 0
@@ -228,7 +232,7 @@ async function showAllUsersInDatabase(req: Request, res: Response) {
 					action: LocalAConfig.serviceAction.failed,
 					data: {
 						message: LocalAConfig.errorMessages.logMessages.unknownError(
-							`processing searchUsersDatabase () in users handler`
+							`processing showAllUsersInDatabase () in users handler`
 						),
 					},
 				},
@@ -285,7 +289,7 @@ async function LimitedShowAllUsersInDatabase(req: Request, res: Response) {
 					action: LocalAConfig.serviceAction.failed,
 					data: {
 						message: LocalAConfig.errorMessages.logMessages.unknownError(
-							`processing searchUsersDatabase () in users handler`
+							`processing LimitedShowAllUsersInDatabase () in users handler`
 						),
 					},
 				},
@@ -316,17 +320,21 @@ async function showOneUser(req: Request, res: Response) {
 			return;
 		} else {
 			const user = reqBody.users;
-			const userPresentResponse = await searchUsers(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
+			const userPresentResponse = await searchUsers(
+				reqBody,
+				(err: Error) => {
+					sendBadRequestResponse(
+						res,
+						{
+							accessToken: newToken,
+							data: { message: err.message },
+							action: LocalAConfig.serviceAction.failed,
+						},
+						err
+					);
+				},
+				'anyMatch'
+			);
 			if (userPresentResponse.feedback === LocalAConfig.serviceStatus.success) {
 				if (userPresentResponse.entCount > 0) {
 					return sendSuccessfulResponse(
@@ -395,17 +403,22 @@ async function updateOldUser(req: Request, res: Response) {
 		} else {
 			const user = reqBody.users;
 			/**checks if user is present */
-			const userPresentResponse = await searchUsers(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
+			const userPresentResponse = await searchUsers(
+				reqBody,
+				(err: Error) => {
+					sendBadRequestResponse(
+						res,
+						{
+							accessToken: newToken,
+							data: { message: err.message },
+							action: LocalAConfig.serviceAction.failed,
+						},
+						err
+					);
+				},
+				'=',
+				'ind'
+			);
 			if (
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				userPresentResponse.entCount > 0
@@ -417,17 +430,21 @@ async function updateOldUser(req: Request, res: Response) {
 					);
 					user.user_password = hashedPassword;
 				}
-				const userToUpdate = await updateUser(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const userToUpdate = await updateUser(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (userToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					return sendAcceptedUpdatedResponse(res, newToken, [
 						...(userToUpdate.data as User[]),
@@ -499,22 +516,9 @@ async function deleteOldUser(req: Request, res: Response) {
 		} else {
 			const user = reqBody.users;
 			/** checks if user is present*/
-			const userPresentResponse = await searchUsers(reqBody, (err: Error) => {
-				sendBadRequestResponse(
-					res,
-					{
-						accessToken: newToken,
-						data: { message: err.message },
-						action: LocalAConfig.serviceAction.failed,
-					},
-					err
-				);
-			});
-			if (
-				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
-				userPresentResponse.entCount > 0
-			) {
-				const userToDelete = await deleteUser(reqBody.users, (err: Error) => {
+			const userPresentResponse = await searchUsers(
+				reqBody,
+				(err: Error) => {
 					sendBadRequestResponse(
 						res,
 						{
@@ -524,7 +528,29 @@ async function deleteOldUser(req: Request, res: Response) {
 						},
 						err
 					);
-				});
+				},
+				'=',
+				'ind'
+			);
+			if (
+				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
+				userPresentResponse.entCount > 0
+			) {
+				const userToDelete = await deleteUser(
+					reqBody.users,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (userToDelete.feedback === LocalAConfig.serviceStatus.success) {
 					return sendSuccessfulResponse(
 						res,
@@ -658,17 +684,21 @@ const updateUserConfiguration = async (req: Request, res: Response) => {
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				userPresentResponse.entCount > 0
 			) {
-				const userToUpdate = await updateUser(reqBody, (err: Error) => {
-					sendBadRequestResponse(
-						res,
-						{
-							accessToken: newToken,
-							data: { message: err.message },
-							action: LocalAConfig.serviceAction.failed,
-						},
-						err
-					);
-				});
+				const userToUpdate = await updateUser(
+					reqBody,
+					(err: Error) => {
+						sendBadRequestResponse(
+							res,
+							{
+								accessToken: newToken,
+								data: { message: err.message },
+								action: LocalAConfig.serviceAction.failed,
+							},
+							err
+						);
+					},
+					'ind'
+				);
 				if (userToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					return sendAcceptedUpdatedResponse(res, newToken, [
 						...(userToUpdate.data as User[]),

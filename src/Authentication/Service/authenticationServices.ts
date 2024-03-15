@@ -13,6 +13,9 @@ import {
 	LocalAConfig,
 	serviceStatus,
 } from '../../config/LocalConfiguration';
+import { text } from 'body-parser';
+import { logError } from '../../helpers/errorLogging';
+import getPGClient from '../../getPGClient';
 
 const tokenSecret = setupData.JWT_access_secret;
 
@@ -21,16 +24,21 @@ export const showUser = async (
 	queryValue: string
 ): Promise<User | null> => {
 	try {
-		const SQL = `SELECT * FROM main.users WHERE ${queryColumn} = '${queryValue}'`;
-		const conn = await client.connect();
-		const result = await conn.query(SQL);
-		conn.release();
-		if (result.rowCount) {
+		const SQL = {
+			text: `SELECT * FROM main.users WHERE ${queryColumn} = $1`,
+			values: [queryValue],
+		};
+		const result = await getPGClient(SQL.text, SQL.values, new Error().stack);
+		if (result && result.rowCount) {
 			delete result.rows[0].user_password;
+			return result.rows[0];
+		} else {
+			return null;
 		}
-		return result.rows[0];
 	} catch (error) {
-		console.log(`${error}`);
+		const err = error as Error;
+		console.log(`${err}`);
+		logError(err);
 		return null;
 	}
 };
@@ -68,6 +76,7 @@ export const registeruser = async (
 		conn.release();
 		const result = rawResult.rows[0];
 		const response: User = {
+			ind: result.ind,
 			full_name: result.full_name,
 			username: result.username,
 		};
@@ -76,6 +85,7 @@ export const registeruser = async (
 		console.log(`${error}`);
 		return {
 			username: '',
+			ind: 0,
 		};
 	}
 };
@@ -257,11 +267,12 @@ export async function authenticate(
 	job?: string | null;
 }> {
 	try {
-		const conn = await client.connect();
-		const sql = `SELECT user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER(username) =LOWER('${username}')`;
-		const result = await conn.query(sql);
-		conn.release();
-		if (result.rowCount === 0) {
+		const sql = {
+			text: `SELECT user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER (username) = LOWER($1);`,
+			values: [username],
+		};
+		const result = await getPGClient(sql.text, sql.values, new Error().stack);
+		if (!result || result.rowCount === 0) {
 			// username is not found
 			return {
 				status: false,

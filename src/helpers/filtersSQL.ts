@@ -241,6 +241,7 @@ export class SELECTSQLQUERY {
 	private firstWHEREStatement = true;
 	private mainTableName = '';
 	private mainSchemaName = '';
+	private values = [];
 	public OR_in_WHERE_statement() {
 		//  to avoid adding OR if no previous WHERE STATAEMENT
 		this.where += this.where.includes('WHERE') ? `\nOR ` : '';
@@ -485,6 +486,12 @@ export class SELECTSQLQUERY {
 				break;
 
 			case 'exactMatchAll':
+				this.where += ` ${this.firstWHEREStatement ? `\nWHERE ` : ``} ( ${
+					tableName[0] ? `${tableName[0]}.` : ''
+				}"${column[0]}" = '${value[0]}') `;
+				this.firstWHEREStatement = false;
+				break;
+			case '=':
 				this.where += ` ${this.firstWHEREStatement ? `\nWHERE ` : ``} ( ${
 					tableName[0] ? `${tableName[0]}.` : ''
 				}"${column[0]}" = '${value[0]}') `;

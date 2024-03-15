@@ -183,6 +183,9 @@
 			}
 		},
 		"RAQSdictionary": {
+			"rank": "Rank",
+			"category": "Category",
+			"status": "Status",
 			"study_id": "Study ID",
 			"study_name": "Study",
 			"arabic_name": "اسم الفحص",
@@ -355,17 +358,18 @@
 					"order_id",
 					"mrn",
 					"patient_name",
+					"age",
 					"study_name",
 					"o_date",
 					"o_status",
 					"modality",
 					"report",
 					"radiologist",
+					"referring_phys",
 					"report_status",
 					"critical",
 					"radiation_dose",
 					"study_instance_uid",
-					"referring_phys",
 					"last_update",
 					"updated_by"
 				],
@@ -375,7 +379,6 @@
 					"modality",
 					"radiologist",
 					"report_status",
-
 					"job",
 					"user_role",
 					"critical"
@@ -456,14 +459,13 @@
 						"filtername": "byexternalid",
 						"type": "string",
 						"wherestatement": "String_WHERE_SingleColumnSingleValue",
-						"match": "exactMatchAll",
 						"tablesArr": ["patients"],
 						"columnArr": ["national_id"]
 					},
 					{
 						"id": "byrefphys",
 						"placeholder": "Select Referring Physician",
-						"searchType": "search",
+						"searchType": "droplist",
 						"optionArr": [{ "value": "", "text": "" }],
 						"filtername": "byrefphys",
 						"type": "string",
@@ -532,10 +534,12 @@
 				"primaryKey": "mrn",
 				"Headers": [
 					"mrn",
+					"rank",
+					"category",
+					"status",
 					"national_id",
 					"patient_name",
 					"dob",
-					"age",
 					"gender",
 					"contacts",
 					"email",
@@ -663,418 +667,6 @@
 					{ "name": "critical", "table": "orders" }
 				],
 				"searchBars": []
-			}
-		}
-	},
-	"arabic": {
-		"selectOptions": {
-			"modality": [
-				{
-					"value": "CT",
-					"text": "CT",
-					"type": "string"
-				},
-				{
-					"value": "CR",
-					"text": "X-RAY",
-					"type": "string"
-				},
-				{
-					"value": "US",
-					"text": "Ultrasound",
-					"type": "string"
-				},
-				{
-					"value": "MR",
-					"text": "MRI",
-					"type": "string"
-				},
-				{
-					"value": "XA",
-					"text": "Int. Rad.",
-					"type": "string"
-				}
-			],
-			"gender": [
-				{
-					"value": "male",
-					"text": "Male",
-					"type": "string"
-				},
-				{
-					"value": "female",
-					"text": "Female",
-					"type": "string"
-				}
-			],
-			"job": [
-				{
-					"value": "HOD",
-					"text": "Head of department",
-					"type": "string"
-				},
-				{
-					"value": "Radiologist",
-					"text": "Radiologist",
-					"type": "string"
-				},
-				{
-					"value": "Technician",
-					"text": "Technician",
-					"type": "string"
-				},
-				{
-					"value": "Secretary",
-					"text": "Secretary",
-					"type": "string"
-				},
-				{
-					"value": "Patient",
-					"text": "Patient",
-					"type": "string"
-				}
-			],
-			"user_role": [
-				{
-					"value": 1,
-					"text": "Admin",
-					"type": "number"
-				},
-				{
-					"value": 2,
-					"text": "Staff",
-					"type": "number"
-				},
-				{
-					"value": 3,
-					"text": "User",
-					"type": "number"
-				}
-			],
-			"o_status": [
-				{
-					"value": "Schedueled",
-					"text": "Schedueled",
-					"type": "string"
-				},
-				{
-					"value": "Completed",
-					"text": "Completed",
-					"type": "string"
-				},
-				{
-					"value": "Reported",
-					"text": "Reported",
-					"type": "string"
-				}
-			],
-			"report_status": [
-				{
-					"value": "Pending",
-					"text": "Pending",
-					"type": "string"
-				},
-				{
-					"value": "Completed",
-					"text": "Completed",
-					"type": "string"
-				},
-				{
-					"value": "Verified",
-					"text": "Verified",
-					"type": "string"
-				},
-				{
-					"value": "Printed",
-					"text": "Printed",
-					"type": "string"
-				},
-				{
-					"value": "Delivered",
-					"text": "Delivered",
-					"type": "string"
-				}
-			],
-			"critical": [
-				{
-					"value": "critical",
-					"text": "Critical Result",
-					"type": "string"
-				},
-				{
-					"value": "not",
-					"text": "Not Critical",
-					"type": "string"
-				}
-			]
-		},
-		"selectOptionsValues": {
-			"modality": {
-				"CT": "CT",
-				"xray": "CR",
-				"ultrasound": "US",
-				"intervention": "XA",
-				"MRI": "MR"
-			},
-			"gender": {
-				"male": "male",
-				"female": "female"
-			},
-			"job": {
-				"HOD": "HOD",
-				"radiologist": "Radiologist",
-				"technician": "Technician",
-				"secretary": "Secretary",
-				"patient": "Patient"
-			},
-			"user_role": {
-				"admin": 1,
-				"staff": 2,
-				"user": 3
-			},
-			"o_status": {
-				"schedueled": "Schedueled",
-				"completed": "Completed",
-				"reported": "Reported"
-			},
-			"report_status": {
-				"pending": "Pending",
-				"completed": "Completed",
-				"verified": "Verified",
-				"printed": "Printed",
-				"delivered": "Delivered"
-			},
-			"critical": {
-				"ciritical": "critical",
-				"notCritical": "not"
-			}
-		},
-		"RAQSdictionary": {
-			"study_id": "كود الفحص",
-			"study_name": "Study",
-			"arabic_name": "اسم الفحص",
-			"price": "السعر",
-			"user_id": "ID",
-			"username": "اسم المستخدم",
-			"user_password": "Password",
-			"confirmPassword": "Confirm Password",
-			"full_name": "Name",
-			"user_role": "Role",
-			"job": "Job",
-			"email": "Email",
-			"o_date": "Order Date",
-			"patient_name": "اسم المريض",
-			"last_update": "Last update",
-			"updated_by": "Updated by",
-			"order_id": "ID",
-			"o_status": "Order Status",
-			"report_status": "Report status",
-			"mrn": "MRN",
-			"study": "should not be used",
-			"report": "Report",
-			"radiologist": "Radiologist",
-			"revised": "Revised",
-			"verified": "Verified",
-			"modality": "Modality",
-			"printed": "Printed",
-			"delivered": "Delivered",
-			"dob": "Date of birth",
-			"age": "Age",
-			"gender": "Gender",
-			"national_id": "National ID",
-			"contacts": "Contacts",
-			"study_code": "Study Code",
-			"critical": "Critical",
-			"radiation_dose": "Radiation dose",
-			"cumulative_dose": "Cumulative Dose",
-			"average_radiation_dose": "Avg. Radiation Dose",
-			"reports_count": "Reports Count",
-			"study_instance_uid": "View",
-			"upload": "Upload",
-			"procedure_id": "ID",
-			"procedure_name": "Procedure",
-			"laboratory": "Lab.",
-			"imaging": "Imaging",
-			"recommended_material": "Recommended Material",
-			"paperwork": "Documents"
-		},
-		"specialFields": {
-			"fieldsToAutoGenerateUID": ["user_id", "order_id", "study_id"],
-			"protectedFields": ["user_id", "order_id", "study_id"],
-			"upperCaseFields": ["study_code", "study_id", "order_id"],
-			"passwordFields": ["password", "user_password", "confirmPassword"],
-			"protectedIDFields": {
-				"users": ["user_id", "username"],
-				"studies": ["study_id"],
-				"patients": ["mrn"],
-				"orders": ["order_id"]
-			},
-			"idElements": [
-				"user_id",
-				"username",
-				"mrn",
-				"study_id",
-				"order_id",
-				"role_id",
-				"clinic_id",
-				"procedure_id",
-				"item_id",
-				"category_id",
-				"transaction_id",
-				"movement_id"
-			]
-		},
-		"pageConstants": {
-			"users": {
-				"removedItemsFromForm": ["user_password", "reports_count"],
-				"addedItems": ["user_password", "confirmPassword"],
-				"selectItemsExcludedFromFilters": [
-					"gender",
-					"modality",
-					"o_status",
-					"report_status",
-					"critical"
-				],
-				"tableTitle": "Users list",
-				"primaryKey": "username",
-				"Headers": [
-					"user_id",
-					"username",
-					"full_name",
-					"user_role",
-					"job",
-					"email",
-					"reports_count"
-				],
-				"includeUpload": false,
-				"selectElements": ["job", "user_role"],
-				"selectFromElements": [],
-				"hideElements": ["created"],
-				"dateElements": [],
-				"formTitle": "User"
-			},
-			"orders": {
-				"removedItemsFromForm": ["study_instance_uid", "report", "modality"],
-				"addedItems": ["study_id"],
-				"selectItemsExcludedFromFilters": ["job", "user_role"],
-				"tableTitle": "Orders list",
-				"primaryKey": "order_id",
-				"Headers": [
-					"order_id",
-					"mrn",
-					"patient_name",
-					"study_name",
-					"o_date",
-					"o_status",
-					"modality",
-					"report",
-					"radiologist",
-					"report_status",
-					"critical",
-					"radiation_dose",
-					"study_instance_uid",
-					"last_update",
-					"updated_by"
-				],
-				"includeUpload": true,
-				"selectElements": [
-					"o_status",
-					"modality",
-					"radiologist",
-					"report_status",
-
-					"job",
-					"user_role",
-					"critical"
-				],
-				"selectFromElements": ["patient_name", "mrn", "study_name", "study_id"],
-				"hideElements": ["last_update", "updated_by"],
-				"dateElements": ["o_date"],
-				"formTitle": "Order"
-			},
-			"studies": {
-				"removedItemsFromForm": [],
-				"addedItems": [],
-				"selectItemsExcludedFromFilters": [
-					"gender",
-					"job",
-					"user_role",
-					"o_status",
-					"report_status",
-					"critical"
-				],
-				"tableTitle": "Studies list",
-				"primaryKey": "study_id",
-				"Headers": [
-					"study_id",
-					"modality",
-					"study_name",
-					"arabic_name",
-					"price",
-					"last_update",
-					"updated_by",
-					"average_radiation_dose"
-				],
-				"includeUpload": false,
-				"selectElements": ["modality"],
-				"selectFromElements": [],
-				"hideElements": ["last_update", "updated_by"],
-				"dateElements": [],
-				"formTitle": "Study"
-			},
-			"patients": {
-				"removedItemsFromForm": [],
-				"addedItems": [],
-				"selectItemsExcludedFromFilters": [
-					"modality",
-					"job",
-					"user_role",
-					"o_status",
-					"report_status",
-					"critical"
-				],
-				"tableTitle": "Patients list",
-				"primaryKey": "mrn",
-				"Headers": [
-					"mrn",
-					"national_id",
-					"patient_name",
-					"dob",
-					"age",
-					"gender",
-					"contacts",
-					"email",
-					"cumulative_dose"
-				],
-				"includeUpload": false,
-				"selectElements": ["gender"],
-				"selectFromElements": [],
-				"hideElements": ["last_update", "updated_by"],
-				"dateElements": ["dob"],
-				"formTitle": "Patient"
-			},
-			"procedures": {
-				"removedItemsFromForm": [],
-				"addedItems": [],
-				"selectItemsExcludedFromFilters": [],
-				"tableTitle": "Procedures list",
-				"primaryKey": "procedure_id",
-				"Headers": [
-					"procedure_id",
-					"procedure_name",
-					"laboratory",
-					"imaging",
-					"recommended_material",
-					"paperwork",
-					"updated_by",
-					"last_update"
-				],
-				"includeUpload": false,
-				"selectElements": [],
-				"selectFromElements": [],
-				"hideElements": ["last_update", "updated_by"],
-				"dateElements": [],
-				"formTitle": "Procedure"
 			}
 		}
 	}
