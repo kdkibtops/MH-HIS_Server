@@ -1,8 +1,10 @@
 import sqlite3, { OPEN_CREATE } from 'sqlite3';
 import { open, Database, ISqlite, IMigrate } from 'sqlite';
+import path from 'path';
+import { DICOMSTORAGEFOLDER } from './DICOMServer';
 
 const db = new sqlite3.Database(
-	'../../application_files/dicom/image.db',
+	path.join(DICOMSTORAGEFOLDER, '/image.db'),
 	sqlite3.OPEN_CREATE,
 	(err) => {
 		if (err) {

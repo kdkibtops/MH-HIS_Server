@@ -30,7 +30,6 @@ import {
 import updateDB from './syncDatabase';
 import StatsHandler from './Handlers/StatsHandler';
 import DICOMHandler from './DICOM/DICOMHandlers';
-import getPGClient from './getPGClient';
 
 /**Function to test connection with database */
 const DBConnectionTest = async (
@@ -109,7 +108,7 @@ const corsOptions: cors.CorsOptions = {
 		}
 	},
 	methods: 'GET, PUT, POST, DELETE, PATCH',
-	allowedHeaders: `Access-Control-Allow-Credentials, Credentials, Authorization, Content-Type, Set-Cookie, Content-Disposition , Access-Control-Allow-Methods, Access-Control-Allow-Origin , Access-Control-Allow-Headers, order_id, fileData`,
+	allowedHeaders: `Access-Control-Allow-Credentials, Credentials, Authorization, Content-Type, Set-Cookie, Content-Disposition , Access-Control-Allow-Methods, Access-Control-Allow-Origin , Access-Control-Allow-Headers,fileData`,
 	// allowedHeaders: `*`,
 	credentials: true,
 };
@@ -204,10 +203,10 @@ authServer.use(mainRoutes.authentication, authenticationRoutes);
 
 radAssitApp.use(mainRoutes.database, databaseManipulation);
 
-// setInterval(() => {
-// 	console.log('Updating Database');
-// 	updateDB();
-// }, 60000);
+setInterval(() => {
+	console.log('Updating Database');
+	updateDB();
+}, 5000);
 
 // Should update the localConfig.json file to the current configuration from the server
 updateLoacalConfigJSON();

@@ -56,8 +56,8 @@ export type GROUPBYObject = {
 	aggregationTable: string;
 	aggregationColumn: string;
 	asColumnName: string;
-	groupBYtableName: string;
-	groupBYcolumnName: string;
+	groupBYtableName: string[];
+	groupBYcolumnName: string[];
 };
 export type tableObject = {
 	use: boolean;

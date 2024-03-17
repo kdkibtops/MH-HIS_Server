@@ -241,7 +241,6 @@ export class SELECTSQLQUERY {
 	private firstWHEREStatement = true;
 	private mainTableName = '';
 	private mainSchemaName = '';
-	private values = [];
 	public OR_in_WHERE_statement() {
 		//  to avoid adding OR if no previous WHERE STATAEMENT
 		this.where += this.where.includes('WHERE') ? `\nOR ` : '';
@@ -472,6 +471,12 @@ export class SELECTSQLQUERY {
 				}"${column[0]}") LIKE LOWER('%${value[0]}%')) `;
 				this.firstWHEREStatement = false;
 				break;
+			case 'startsWith':
+				this.where += ` ${this.firstWHEREStatement ? `\nWHERE ` : ``} ( LOWER(${
+					tableName[0] ? `${tableName[0]}.` : ''
+				}"${column[0]}") LIKE LOWER('${value[0]}%')) `;
+				this.firstWHEREStatement = false;
+				break;
 			case 'matchCaseOnly':
 				this.where += ` ${this.firstWHEREStatement ? `\nWHERE ` : ``} ( ${
 					tableName[0] ? `${tableName[0]}.` : ''
@@ -484,7 +489,6 @@ export class SELECTSQLQUERY {
 				}"${column[0]}") = LOWER('${value[0]}')) `;
 				this.firstWHEREStatement = false;
 				break;
-
 			case 'exactMatchAll':
 				this.where += ` ${this.firstWHEREStatement ? `\nWHERE ` : ``} ( ${
 					tableName[0] ? `${tableName[0]}.` : ''
@@ -574,6 +578,14 @@ export class SELECTSQLQUERY {
 						this.where += `OR `;
 					}
 					break;
+				case 'startsWith':
+					this.where += `LOWER(${tableName[0] ? `${tableName[0]}.` : ''}"${
+						column[0]
+					}") LIKE LOWER('${val}%') `;
+					if (i < values.length - 1) {
+						this.where += `OR `;
+					}
+					break;
 				case 'matchCaseOnly':
 					this.where += `${tableName[0] ? `${tableName[0]}.` : ''}"${
 						column[0]
@@ -598,6 +610,14 @@ export class SELECTSQLQUERY {
 						this.where += `OR `;
 					}
 					break;
+				case '=':
+					this.where += `${tableName[0] ? `${tableName[0]}.` : ''}"${
+						column[0]
+					}" = '${val}' `;
+					if (i < values.length - 1) {
+						this.where += `OR `;
+					}
+					break;
 			}
 		});
 		this.where += `) `;
@@ -613,14 +633,22 @@ export class SELECTSQLQUERY {
 		match: stringMatch[]
 	) {
 		this.where += this.firstWHEREStatement ? `\nWHERE (` : ` (`;
-		console.log(tablesName);
-		console.log(columns);
 		switch (match[0]) {
 			case 'anyMatch':
 				columns.forEach((col, i) => {
 					this.where += `LOWER(${
 						tablesName[i] ? `${tablesName[i]}.` : ''
 					}"${col}") LIKE LOWER('%${value[0]}%') `;
+					if (i < columns.length - 1) {
+						this.where += `OR `;
+					}
+				});
+				break;
+			case 'startsWith':
+				columns.forEach((col, i) => {
+					this.where += `LOWER(${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}") LIKE LOWER('${value[0]}%') `;
 					if (i < columns.length - 1) {
 						this.where += `OR `;
 					}
@@ -647,6 +675,16 @@ export class SELECTSQLQUERY {
 				});
 				break;
 			case 'exactMatchAll':
+				columns.forEach((col, i) => {
+					this.where += `${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}" = '${value[0]}' `;
+					if (i < columns.length - 1) {
+						this.where += `OR `;
+					}
+				});
+				break;
+			case '=':
 				columns.forEach((col, i) => {
 					this.where += `${
 						tablesName[i] ? `${tablesName[i]}.` : ''
@@ -680,6 +718,16 @@ export class SELECTSQLQUERY {
 					}
 				});
 				break;
+			case 'startsWith':
+				columns.forEach((col, i) => {
+					this.where += `LOWER(${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}") LIKE LOWER('${value[0]}%') `;
+					if (i < columns.length - 1) {
+						this.where += `AND `;
+					}
+				});
+				break;
 			case 'matchCaseOnly':
 				columns.forEach((col, i) => {
 					this.where += `${
@@ -701,6 +749,16 @@ export class SELECTSQLQUERY {
 				});
 				break;
 			case 'exactMatchAll':
+				columns.forEach((col, i) => {
+					this.where += `${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}" = '${value[0]}' `;
+					if (i < columns.length - 1) {
+						this.where += `AND `;
+					}
+				});
+				break;
+			case '=':
 				columns.forEach((col, i) => {
 					this.where += `${
 						tablesName[i] ? `${tablesName[i]}.` : ''
@@ -733,6 +791,14 @@ export class SELECTSQLQUERY {
 						this.where += ` OR `;
 					}
 					break;
+				case 'startsWith':
+					this.where += ` LOWER(${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}") LIKE LOWER('${values[i]}%')`;
+					if (i < columns.length - 1) {
+						this.where += ` OR `;
+					}
+					break;
 				case 'matchCaseOnly':
 					this.where += ` ${
 						tablesName[i] ? `${tablesName[i]}.` : ''
@@ -750,6 +816,14 @@ export class SELECTSQLQUERY {
 					}
 					break;
 				case 'exactMatchAll':
+					this.where += ` ${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}" = '${values[i]}'`;
+					if (i < columns.length - 1) {
+						this.where += ` OR `;
+					}
+					break;
+				case '=':
 					this.where += ` ${
 						tablesName[i] ? `${tablesName[i]}.` : ''
 					}"${col}" = '${values[i]}'`;
@@ -782,6 +856,14 @@ export class SELECTSQLQUERY {
 						this.where += ` AND `;
 					}
 					break;
+				case 'startsWith':
+					this.where += ` LOWER(${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}") LIKE LOWER('${values[i]}%')`;
+					if (i < columns.length - 1) {
+						this.where += ` AND `;
+					}
+					break;
 				case 'matchCaseOnly':
 					this.where += ` ${
 						tablesName[i] ? `${tablesName[i]}.` : ''
@@ -799,6 +881,14 @@ export class SELECTSQLQUERY {
 					}
 					break;
 				case 'exactMatchAll':
+					this.where += ` ${
+						tablesName[i] ? `${tablesName[i]}.` : ''
+					}"${col}" = '${values[i]}'`;
+					if (i < columns.length - 1) {
+						this.where += ` AND `;
+					}
+					break;
+				case '=':
 					this.where += ` ${
 						tablesName[i] ? `${tablesName[i]}.` : ''
 					}"${col}" = '${values[i]}'`;
@@ -885,11 +975,16 @@ export class SELECTSQLQUERY {
 		aggregationTable: string,
 		agrregationColumn: string,
 		asColumnName: string,
-		groupBYtableName: string,
-		groupBYcolumnName: string
+		groupBYtableName: string[],
+		groupBYcolumnName: string[]
 	) {
 		this.groupbyAggregateFunction = `,\n${aggregationMETHOD} (${aggregationTable}."${agrregationColumn}") AS ${asColumnName}`;
-		this.groupbyAggregateColumn = `\nGROUP BY (${groupBYtableName}."${groupBYcolumnName}")`;
+		this.groupbyAggregateColumn += `\nGROUP BY (`;
+		groupBYcolumnName.forEach((col, index) => {
+			this.groupbyAggregateColumn += ` ${groupBYtableName[index]}."${groupBYcolumnName[index]}",`;
+		});
+		this.groupbyAggregateColumn = this.groupbyAggregateColumn.slice(0, -1);
+		this.groupbyAggregateColumn += ` )`;
 		return this;
 	}
 	public BUILDSQL() {

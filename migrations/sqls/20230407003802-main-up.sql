@@ -1,8 +1,10 @@
-CREATE SCHEMA "main";
+CREATE SCHEMA IF NOT EXISTS "main";
 
-CREATE SCHEMA "inventory";
+CREATE SCHEMA IF NOT EXISTS "inventory";
 
-CREATE TABLE "main"."setupdata" (
+CREATE SCHEMA IF NOT EXISTS "orders_schema";
+
+CREATE TABLE IF NOT EXISTS "main"."setupdata" (
 "ind" SERIAL PRIMARY KEY,
 "data_id" VARCHAR(10),
 "selectOptions" json,
@@ -12,7 +14,7 @@ CREATE TABLE "main"."setupdata" (
 "pageConstants" json
 );
 
-CREATE TABLE "main"."users" (
+CREATE TABLE IF NOT EXISTS "main"."users" (
   "ind" SERIAL ,
   "user_id" VARCHAR(50),
   "username" VARCHAR(50) PRIMARY KEY,
@@ -27,7 +29,7 @@ CREATE TABLE "main"."users" (
   "last_update" VARCHAR(75)
 );
 
-CREATE TABLE "main"."patients" (
+CREATE TABLE IF NOT EXISTS "main"."patients" (
   "ind" SERIAL ,
   "mrn" VARCHAR(150) PRIMARY KEY,
   "category" VARCHAR (15),
@@ -43,7 +45,7 @@ CREATE TABLE "main"."patients" (
   "last_update" VARCHAR(75)
 );
 
-CREATE TABLE "main"."studies" (
+CREATE TABLE IF NOT EXISTS "main"."studies" (
   "ind" SERIAL ,
   "study_id" VARCHAR(150) PRIMARY KEY,
   "modality" VARCHAR(10),
@@ -54,15 +56,15 @@ CREATE TABLE "main"."studies" (
   "last_update" VARCHAR(75)
 );
 
-CREATE TABLE "main"."orders" (
-  "ind" SERIAL ,
+CREATE TABLE IF NOT EXISTS "main"."orders" (
+  "ind" SERIAL UNIQUE,
   "order_id" VARCHAR(100) PRIMARY KEY,
   "mrn" VARCHAR(150),
   "age" float,
   "study_id" VARCHAR(150),
   "o_date" date,
   "o_status" VARCHAR(20) ,
-  "report" text[],
+  -- "report" text[],
   "radiologist" VARCHAR(75),
   "referring_phys" VARCHAR(75),
   "report_status" VARCHAR(50) ,
@@ -74,7 +76,20 @@ CREATE TABLE "main"."orders" (
   "last_update" VARCHAR(75)
 );
 
-CREATE TABLE "main"."user_roles" (
+CREATE TABLE IF NOT EXISTS "orders_schema"."paperwork" (
+  "ind" SERIAL PRIMARY KEY,
+  "order_ind" INTEGER ,
+  "order_id" VARCHAR(100),
+  "paperwork_name" VARCHAR(50),
+  "paperwork_path" TEXT,
+  "category" VARCHAR(50),
+  "updated_by" VARCHAR(50),
+  "last_update" VARCHAR(75),
+  CONSTRAINT fkey_ord_paperwork FOREIGN KEY ("order_id") REFERENCES main.orders ("order_id") ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fkey_ord_updated_by FOREIGN KEY ("updated_by") REFERENCES main.users ("username") ON UPDATE CASCADE 
+);
+
+CREATE TABLE IF NOT EXISTS "main"."user_roles" (
   "ind" SERIAL ,
   "role_id" INTEGER PRIMARY KEY,
   "role_name" VARCHAR(50),
@@ -83,7 +98,7 @@ CREATE TABLE "main"."user_roles" (
   "last_update" VARCHAR(75)
 );
 
-CREATE TABLE "main"."clinics" (
+CREATE TABLE IF NOT EXISTS "main"."clinics" (
   "ind" SERIAL ,
   "clinic_id" INTEGER PRIMARY KEY,
   "clinic_date" VARCHAR(50),
@@ -95,7 +110,7 @@ CREATE TABLE "main"."clinics" (
   "last_update" VARCHAR(75)
 );
 
-CREATE TABLE "main"."procedures" (
+CREATE TABLE IF NOT EXISTS "main"."procedures" (
   "ind" SERIAL ,
   "procedure_id" VARCHAR(50) PRIMARY KEY,
   "procedure_name" VARCHAR(100),
@@ -107,7 +122,7 @@ CREATE TABLE "main"."procedures" (
   "last_update" VARCHAR(50)
 );
 
-CREATE TABLE "inventory"."materials" (
+CREATE TABLE IF NOT EXISTS "inventory"."materials" (
   "ind" SERIAL,
   "item_id" VARCHAR(50) PRIMARY KEY,
   "item_name" VARCHAR(100),
@@ -119,7 +134,7 @@ CREATE TABLE "inventory"."materials" (
   "last_update" VARCHAR(50)
 );
 
-CREATE TABLE "inventory"."categories" (
+CREATE TABLE IF NOT EXISTS "inventory"."categories" (
   "ind" SERIAL,
   "category_id" VARCHAR(50) PRIMARY KEY,
   "category_name" VARCHAR(100),
@@ -127,7 +142,7 @@ CREATE TABLE "inventory"."categories" (
   "last_update" VARCHAR(50)
 );
 
-CREATE TABLE "inventory"."stores" (
+CREATE TABLE IF NOT EXISTS "inventory"."stores" (
   "ind" SERIAL,
   "store_id" VARCHAR(50) PRIMARY KEY,
   "store_name" VARCHAR(50),
@@ -138,7 +153,7 @@ CREATE TABLE "inventory"."stores" (
   "last_update" VARCHAR(50)
 );
 
-CREATE TABLE "inventory"."transactions" (
+CREATE TABLE IF NOT EXISTS "inventory"."transactions" (
   "ind" SERIAL,
   "transaction_id" VARCHAR(50) PRIMARY KEY,
   "mrn" VARCHAR(150),
@@ -149,7 +164,7 @@ CREATE TABLE "inventory"."transactions" (
   "last_update" VARCHAR(50)
 );
 
-CREATE TABLE "inventory"."item_movements" (
+CREATE TABLE IF NOT EXISTS "inventory"."item_movements" (
   "ind" SERIAL,
   "movement_id" VARCHAR(50) PRIMARY KEY,
   "trasnaction_id" VARCHAR(50),

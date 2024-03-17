@@ -3,18 +3,13 @@ import { LocalAConfig, serviceStatus } from '../config/LocalConfiguration';
 import {
 	GROUPBYObject,
 	JOINObject,
-	REQBODY,
-	SEARCHCRITERIA,
 	aggregationMETHOD,
 	joinDirection,
 	newSEARCHCRITERIA,
 	tableObject,
 } from '../config/types';
 import getPGClient from '../getPGClient';
-import {
-	SELECTSQLQUERY,
-	legacy_trialAddFilterSQL,
-} from '../helpers/filtersSQL';
+import { SELECTSQLQUERY } from '../helpers/filtersSQL';
 
 function createShowAllOnCriteriaFunction(tableName: string): Function {
 	const showAllOnCriteria = async (
@@ -82,8 +77,8 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 						aggregationMETHOD: 'AVG',
 						aggregationTable: 'orders',
 						aggregationColumn: 'radiation_dose',
-						groupBYtableName: 'studies',
-						groupBYcolumnName: 'study_id',
+						groupBYtableName: ['studies'],
+						groupBYcolumnName: ['study_id'],
 						asColumnName: 'average_radiation_dose',
 					};
 					JOINObjects = [
@@ -152,7 +147,30 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 							table1Fkey: 'study_id',
 							table2FKey: 'study_id',
 						},
+						{
+							use: true,
+							joinDirection: 'LEFT',
+							table2SchemaName: 'orders_schema',
+							table2Name: 'paperwork',
+							table1Fkey: 'order_id',
+							table2FKey: 'order_id',
+						},
 					];
+					GROUPBYObject = {
+						use: true,
+						aggregationMETHOD: 'COUNT',
+						aggregationTable: 'orders_schema.paperwork',
+						aggregationColumn: 'paperwork_path',
+						asColumnName: 'reports_count',
+						groupBYtableName: [
+							'orders',
+							'orders',
+							'patients',
+							'patients',
+							'studies',
+						],
+						groupBYcolumnName: ['ind', 'order_id', 'ind', 'mrn', 'study_id'],
+					};
 					break;
 				case 'patients':
 					tableObject = {
@@ -213,8 +231,8 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 						aggregationMETHOD: 'SUM',
 						aggregationTable: 'orders',
 						aggregationColumn: 'radiation_dose',
-						groupBYtableName: 'patients',
-						groupBYcolumnName: 'mrn',
+						groupBYtableName: ['patients'],
+						groupBYcolumnName: ['mrn'],
 						asColumnName: 'cumulative_dose',
 					};
 					JOINObjects = [
@@ -271,8 +289,8 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 						aggregationMETHOD: 'COUNT',
 						aggregationTable: 'orders',
 						aggregationColumn: 'radiologist',
-						groupBYtableName: 'users',
-						groupBYcolumnName: 'username',
+						groupBYtableName: ['users'],
+						groupBYcolumnName: ['username'],
 						asColumnName: 'reports_count',
 					};
 					JOINObjects = [
@@ -304,6 +322,8 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 							JOINObject.table2FKey
 						);
 				});
+			console.log(GROUPBYObject.groupBYcolumnName);
+			console.log(GROUPBYObject.groupBYtableName);
 			GROUPBYObject &&
 				GROUPBYObject.use &&
 				sqlQuery.GROUPBY(

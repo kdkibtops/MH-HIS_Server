@@ -20,7 +20,7 @@ const updateDB = async (callBackErr?: Function) => {
 		});
 		const SQL = `SELECT * FROM change_log WHERE processed = 0`;
 		const result = await db.all(SQL);
-		console.log(result);
+		// console.log(result);
 		if (result.length > 0) {
 			result.forEach(async (row) => {
 				console.log('retrieving new data');
@@ -34,7 +34,7 @@ const updateDB = async (callBackErr?: Function) => {
 						if (err) {
 							console.error(err);
 						}
-						console.log('Patient: ', result);
+						// console.log('Patient: ', result);
 						patient = result;
 					}
 				);
@@ -44,7 +44,7 @@ const updateDB = async (callBackErr?: Function) => {
 						if (err) {
 							console.error(err);
 						}
-						console.log('Order: ', result);
+						// console.log('Order: ', result);
 						order = result;
 					}
 				);
@@ -58,7 +58,6 @@ const updateDB = async (callBackErr?: Function) => {
 							'Modality'
 					  ]
 					: 'Undefined Modality';
-				console.log(modality);
 				const DoseReport = series.filter((s) => s['Modality'] === 'SR').length
 					? 123
 					: false;
@@ -100,7 +99,6 @@ const updateDB = async (callBackErr?: Function) => {
 					// by study name not study_id to avoid duplication of name as much as possible, if the name is present I should use the same study code
 					// instead of creating new study with the same name
 					const checkStudyFoundSQL = `SELECT * FROM main.studies WHERE LOWER(study_name)=LOWER('${order['StudyDescription']}')`;
-					// console.log(checkStudyFoundSQL);
 					const stuConn = await client.connect();
 					const study = await stuConn.query(checkStudyFoundSQL);
 					const studyFound = study.rowCount;
@@ -109,12 +107,12 @@ const updateDB = async (callBackErr?: Function) => {
 					if (studyFound === 0 || order['StudyDescription'] === null) {
 						const createStudySQL = `INSERT INTO main.studies 
 							(study_id, study_name,modality,updated_by) 
-							VALUES (LOWER('${modality}${StudyID}'), '${order['StudyDescription']}','${
-							modality ? modality : 'Undefined'
-						}', 'admin')
+							VALUES (LOWER('${modality}${StudyID}'), '${
+							order['StudyDescription']
+						}${StudyID}','${modality ? modality : 'Undefined'}', 'admin')
 							ON CONFLICT DO NOTHING`;
-						// console.log(createStudySQL);
 						try {
+							console.log('inserting study from MYSQL');
 							await stuConn.query(createStudySQL);
 							stuConn.release();
 						} catch (err) {
@@ -139,14 +137,14 @@ const updateDB = async (callBackErr?: Function) => {
 
 					// Inserting patient to postgreSQL
 					const createPatientSQL = `INSERT INTO main.patients 
-						(patient_name, mrn, dob,age,gender,updated_by) 
+						(patient_name, mrn, dob,gender,updated_by) 
 						VALUES ('${String(PatientName).replaceAll(
 							'^',
 							' '
-						)}',LOWER('${PatientID}'),'${dob}','${age}' ,'${gender}','admin')
+						)}',LOWER('${PatientID}'),'${dob}' ,'${gender}','admin')
 						ON CONFLICT DO NOTHING`;
-					// console.log(createPatientSQL);
 					try {
+						console.log('inserting patient from MYSQL');
 						const patConn = await client.connect();
 						await patConn.query(createPatientSQL);
 						patConn.release();
@@ -170,6 +168,7 @@ const updateDB = async (callBackErr?: Function) => {
 					}
 
 					series.forEach(async (ser) => {
+						console.log('inserting order from MYSQL');
 						// if the study found, may be study_id is different, so to avoid fkey constraint error, we use the study_id retrieved from the found study
 						const studyCodeInLowerCase =
 							studyFound === 0
@@ -181,12 +180,12 @@ const updateDB = async (callBackErr?: Function) => {
 							// find a logic to read the radiation dose from the SR dose report file
 							Modality === 'SR' ? [', radiation_dose', ` ${123}`] : ['', ''];
 						const createOrderSQL = `INSERT INTO main.orders 
-								(order_id, mrn,study_id,o_date, o_status,report_status,updated_by, study_instance_uid, series_count${
+								(order_id, mrn,study_id,o_date, o_status,report_status,age ,updated_by, study_instance_uid, series_count${
 									radiationDose[0]
 								}) 
 								VALUES(LOWER('${
 									AccessionNumber ? AccessionNumber : `${StudyDate}${StudyTime}`
-								}'),LOWER('${PatientID}'),${studyCodeInLowerCase},'${StudyDate}','Completed','Pending','admin','${StudyInstanceUID}', ${Number(
+								}'),LOWER('${PatientID}'),${studyCodeInLowerCase},'${StudyDate}','Completed','Pending',${age} ,'admin','${StudyInstanceUID}', ${Number(
 							numSeries
 						)}${radiationDose[1] === '' ? '' : ',' + radiationDose[1]})
 								ON CONFLICT ON CONSTRAINT orders_pkey DO 
@@ -196,7 +195,7 @@ const updateDB = async (callBackErr?: Function) => {
 								${radiationDose[0]}${ser['Modality'] === 'SR' ? '=' : ''}${radiationDose[1]}
 								WHERE LOWER(orders.order_id) = LOWER('${AccessionNumber}')
 								`;
-						// console.log(createOrderSQL);
+						console.log(createOrderSQL);
 
 						try {
 							const serConn = await client.connect();

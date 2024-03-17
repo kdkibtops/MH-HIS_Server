@@ -12,6 +12,7 @@ export const getPGClient = async (
 	stack?: string
 ): Promise<QueryResult | null> => {
 	try {
+		console.log(text);
 		const conn = await client.connect();
 		const start = Date.now();
 		const res = await conn.query(text, values);

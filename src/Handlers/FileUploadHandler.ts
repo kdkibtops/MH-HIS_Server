@@ -17,12 +17,24 @@ import {
 	getOrderPatientData,
 	insertPathToDB,
 } from '../Models/FileUpload';
+import { sendBadRequestResponse } from '../ResponseHandler/ClientError';
+import { serviceAction } from '../config/LocalConfiguration';
+export type OrderReport = {
+	ind: number;
+	order_ind: number;
+	order_id: string;
+	paperwork_name: string;
+	paperwork_path: string;
+	updated_by: string;
+	last_update: string;
+	category: string | null;
+};
 
 async function uploadFile(req: Request, res: Response) {
 	try {
 		// order_id will be either present as a param or in the request headers: order_id
-		const order_id = req.params.order_id || (req.headers.order_id as string);
-		const { order, patient } = await getOrderPatientData(order_id);
+		const { orderind, fileName, category } = req.params;
+		const { order, patient } = await getOrderPatientData(Number(orderind));
 		if (order === null || patient === null) {
 			res.json({ status: 'Failed', enteries: 0, data: [] }).status(400);
 			return;
@@ -54,13 +66,15 @@ async function uploadFile(req: Request, res: Response) {
 		// Function when file is saved to storage
 		form.on('file', async (form, file) => {
 			const pathSavedToDb = await insertPathToDB(
-				'main.orders',
-				'order_id',
-				order_id,
-				'report',
-				file.filepath
+				Number(orderind),
+				order.order_id,
+				file.filepath,
+				fileName,
+				category
 			);
-			res.status(200).send(file.filepath);
+			res
+				.status(pathSavedToDb ? 200 : 400)
+				.json(pathSavedToDb ? pathSavedToDb : null);
 		});
 	} catch (error) {
 		console.log(`Error at uploadFile in uploadHandler: ${error}`);
@@ -70,30 +84,34 @@ async function uploadFile(req: Request, res: Response) {
 
 async function deleteFIle(req: Request, res: Response) {
 	try {
-		const order_id = req.params.order_id;
-		const filePath = req.body.filePath as string;
-		if (existsSync(filePath)) {
-			unlinkSync(filePath);
+		const report = req.body.report as OrderReport;
+		if (existsSync(report.paperwork_path)) {
+			unlinkSync(report.paperwork_path);
 		}
-		const result = await deletePathFromDB(
-			'main.orders',
-			'order_id',
-			order_id,
-			'report',
-			filePath
-		);
-		const orderFolder = path.dirname(filePath);
-		const patientFolder = path.dirname(orderFolder);
-		const reports = readdirSync(orderFolder);
-		if (reports.length === 0) {
-			rmdirSync(orderFolder);
+		const reportDeleted = await deletePathFromDB(report);
+		if (reportDeleted) {
+			const orderFolder = path.dirname(report.paperwork_path);
+			const patientFolder = path.dirname(orderFolder);
+			const reports = readdirSync(orderFolder);
+			if (reports.length === 0) {
+				rmdirSync(orderFolder);
+			}
+			const ordersWithReports = readdirSync(patientFolder);
+			if (ordersWithReports.length === 0) {
+				rmdirSync(patientFolder);
+			}
+			res.json({ data: report }).status(200);
+		} else {
+			sendBadRequestResponse(
+				res,
+				{
+					accessToken: '',
+					data: { message: 'Report not found in DB' },
+					action: serviceAction.failed,
+				},
+				new Error('Report not found in DB')
+			);
 		}
-		const ordersWithReports = readdirSync(patientFolder);
-		if (ordersWithReports.length === 0) {
-			rmdirSync(patientFolder);
-		}
-
-		res.json({ data: result }).status(200);
 	} catch (error) {
 		res.status(400);
 	}
@@ -195,9 +213,9 @@ async function openFile(req: Request, res: Response) {
 }
 
 const filesHandler = Router();
-filesHandler.post('/upload', uploadFile);
+filesHandler.post('/upload/:orderind/:fileName/:category', uploadFile);
 filesHandler.post('/open', downloadFile);
-filesHandler.post('/delete/:order_id', deleteFIle);
+filesHandler.post('/delete', deleteFIle);
 // filesHandler.post('/deletedocument/:table/:ID/:dataCategory', deleteDocument);
 filesHandler.post('/genericupload', genericUploadFile);
 

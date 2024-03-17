@@ -14,6 +14,7 @@ import createUpdateFunction from '../ParentFunctions/createUpdate';
 import createDeleteFunction from '../ParentFunctions/createDelete';
 import createShowAllFunction from '../ParentFunctions/createShowAll';
 import createSearchFunction from '../ParentFunctions/createSearch';
+import getPGClient from '../getPGClient';
 
 export type Order = {
 	ind?: number;
@@ -24,6 +25,8 @@ export type Order = {
 	o_date: string;
 	o_status: string;
 	report?: string[];
+	reportsArr: { ind: number; paperwork_name: string; paperwork_path: string }[];
+	reports_count: number;
 	radiologist?: string;
 	report_status?: string;
 	critical?: boolean;
@@ -83,7 +86,28 @@ export async function showAllOrdersOnCriteria(
 > {
 	console.log('using the new search on criteria function');
 	const show_all_on_criteria = createShowAllOnCriteriaFunction(tableName);
-	return show_all_on_criteria(criteria, callBackErr);
+	const orders = await show_all_on_criteria(criteria, callBackErr);
+	const getReportsArray = async (orders: Order[]) => {
+		const nemap = Promise.all(
+			orders.map(async (o) => {
+				if (o.reports_count > 0) {
+					const res = await getPGClient(
+						`SELECT * FROM orders_schema.paperwork WHERE order_id = '${o.order_id}' `,
+						[],
+						new Error().stack
+					);
+					const reportsArr = res ? res.rows : ['dasdas'];
+					return { ...o, reportsArr: [...reportsArr] };
+				} else {
+					return { ...o, reportsArr: [] };
+				}
+			})
+		);
+		return nemap;
+	};
+	const newOrdersArr = await getReportsArray(orders.data);
+
+	return { ...orders, data: newOrdersArr };
 }
 export async function insertOrder(
 	req: REQBODY,
