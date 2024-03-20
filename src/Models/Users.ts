@@ -16,7 +16,7 @@ import createShowAllFunction from '../ParentFunctions/createShowAll';
 import createSearchFunction from '../ParentFunctions/createSearch';
 
 export type User = {
-	ind?: number;
+	ind: number;
 	user_id?: number | string;
 	username: string;
 	full_name?: string;
@@ -33,19 +33,19 @@ export class USER {
 	public username: string;
 	public full_name: string;
 	public user_password: string;
-	public user_role: number;
+	public user_role?: number;
 	public job: string;
 	public email: string;
 	public verified: boolean;
 	public user_config: object | string;
 
 	public constructor(data: User) {
-		this.ind = data.ind || 0;
+		this.ind = data.ind;
 		this.user_id = data.user_id || '';
 		this.username = data.username || '';
 		this.full_name = data.full_name || '';
 		this.user_password = data.user_password || '';
-		this.user_role = data.user_role || 0;
+		this.user_role = data.user_role;
 		this.job = data.job || '';
 		this.email = data.email || '';
 		this.verified = data.verified || false;

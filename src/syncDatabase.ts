@@ -20,7 +20,7 @@ const updateDB = async (callBackErr?: Function) => {
 		});
 		const SQL = `SELECT * FROM change_log WHERE processed = 0`;
 		const result = await db.all(SQL);
-		// console.log(result);
+		console.log(result);
 		if (result.length > 0) {
 			result.forEach(async (row) => {
 				console.log('retrieving new data');

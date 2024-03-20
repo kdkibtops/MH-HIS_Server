@@ -70,7 +70,7 @@ const allOptions = {
 		},
 	},
 	storagePath: DICOMSTORAGEFOLDER,
-	verbose: false,
+	verbose: true,
 };
 export const APPDICOMServerStorage = allOptions.peers.thisDICOMServer;
 // Options for recieving and storing studies and query on this server
@@ -78,31 +78,46 @@ const scpOptions: storeScpOptions = {
 	source: APPDICOMServerStorage,
 	peers: Object.values(allOptions.peers),
 	storagePath: allOptions.storagePath,
-	verbose: allOptions.verbose,
-	permissive: true,
-	storeOnly: false,
+	verbose: false,
+	permissive: false,
+	// storeOnly: false,
 };
 // This is used to allow MY DICOM server to accept and store the sent studies
 // Also allows sources to query this database
-startStoreScp(scpOptions, (result) => {
-	const msg = JSON.parse(result);
-	// retrieve and store the image
-	if (msg.message === 'BUFFER_STORAGE') {
-		let buff = Buffer.from(msg.container.base64, 'base64');
-		const directory = `${scpOptions.storagePath}/${msg.container.StudyInstanceUID}`;
-		const filepath = `${directory}/${msg.container.SOPInstanceUID}.dcm`;
-		if (!existsSync(directory)) {
-			mkdirSync(directory);
-		}
-		writeFile(filepath, buff, 'binary', (err) => {
-			err ? console.log(err) : console.log(`The file was saved to ${filepath}`);
-		});
-	} else {
-		console.log('Peer is requesting study');
+// Need to find out how can I trigger function once a new study is added
+export const startDICOMDCME = () => {
+	console.log(
+		'DICOM Listening on ' +
+			scpOptions.source.ip +
+			':' +
+			scpOptions.source.port +
+			'\n' +
+			'PORT: ' +
+			scpOptions.source.port
+	);
+	startStoreScp(scpOptions, (result) => {
+		const msg = JSON.parse(result);
 		console.log(msg);
-	}
-});
-
+		//	retrieve and store the image
+		if (msg.message === 'BUFFER_STORAGE') {
+			let buff = Buffer.from(msg.container.base64, 'base64');
+			const directory = `${scpOptions.storagePath}/${msg.container.StudyInstanceUID}`;
+			const filepath = `${directory}/${msg.container.SOPInstanceUID}.dcm`;
+			if (!existsSync(directory)) {
+				console.log('creating new folder');
+				mkdirSync(directory, { recursive: true });
+			}
+			writeFile(filepath, buff, 'binary', (err) => {
+				err
+					? console.log(err)
+					: console.log(`The file was saved to ${filepath}`);
+			});
+		} else {
+			console.log('Peer is requesting study');
+			console.log(msg);
+		}
+	});
+};
 // Test all peers
 setTimeout(() => {
 	Object.values(allOptions.peers).forEach(async (src) => {
@@ -133,7 +148,6 @@ export const pushStudy = (StudyInstanceUID: string, AET: string) => {
 	// This is used to allow MY DICOM server to push studies
 	// Options for recieving and storing studies
 	const allPeers = Object.values(allOptions.peers);
-
 	const target = allPeers.filter((p) => p.aet === AET);
 	if (target.length > 0) {
 		console.log(`pushing study to ${JSON.stringify(target[0])}`);
@@ -146,7 +160,6 @@ export const pushStudy = (StudyInstanceUID: string, AET: string) => {
 			sourcePath: path.join(allOptions.storagePath, StudyInstanceUID),
 			verbose: allOptions.verbose,
 		};
-
 		storeScu(scuOptions, (result) => {
 			const na = JSON.parse(result);
 			console.log(na);

@@ -684,21 +684,17 @@ const updateUserConfiguration = async (req: Request, res: Response) => {
 				userPresentResponse.feedback === LocalAConfig.serviceStatus.success &&
 				userPresentResponse.entCount > 0
 			) {
-				const userToUpdate = await updateUser(
-					reqBody,
-					(err: Error) => {
-						sendBadRequestResponse(
-							res,
-							{
-								accessToken: newToken,
-								data: { message: err.message },
-								action: LocalAConfig.serviceAction.failed,
-							},
-							err
-						);
-					},
-					'ind'
-				);
+				const userToUpdate = await updateUser(reqBody, (err: Error) => {
+					sendBadRequestResponse(
+						res,
+						{
+							accessToken: newToken,
+							data: { message: err.message },
+							action: LocalAConfig.serviceAction.failed,
+						},
+						err
+					);
+				});
 				if (userToUpdate.feedback === LocalAConfig.serviceStatus.success) {
 					return sendAcceptedUpdatedResponse(res, newToken, [
 						...(userToUpdate.data as User[]),

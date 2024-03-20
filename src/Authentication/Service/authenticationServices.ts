@@ -105,6 +105,7 @@ export async function authentication(
 			full_name: string;
 			username: string;
 			user_id: string;
+			users_ind: number;
 			user_role: string;
 			job: string;
 	  }
@@ -125,6 +126,7 @@ export async function authentication(
 				full_name: authUser.full_name,
 				username: authUser.username,
 				user_id: authUser.user_id,
+				users_ind: authUser.users_ind,
 				user_role: authUser.user_role,
 				job: authUser.job,
 			};
@@ -168,6 +170,7 @@ export async function authenticateUser(
 			jwt: string;
 			full_name: string;
 			user_id: string;
+			users_ind: number;
 			username: string;
 			user_role: string;
 			job: string;
@@ -178,6 +181,7 @@ export async function authenticateUser(
 			jwt: '';
 			full_name: null;
 			user_id: null;
+			users_ind: null;
 			username: null;
 			authStatus: false;
 			err: null;
@@ -186,6 +190,7 @@ export async function authenticateUser(
 			jwt: '';
 			full_name: string;
 			user_id: string;
+			users_ind: null;
 			username: string;
 			authStatus: false;
 			err: null;
@@ -209,6 +214,7 @@ export async function authenticateUser(
 			jwt: string;
 			full_name: string;
 			user_id: string;
+			users_ind: number;
 			username: string;
 			user_role: string;
 			job: string;
@@ -218,6 +224,7 @@ export async function authenticateUser(
 			jwt: BEARER_JWT,
 			full_name: auth.full_name as string,
 			user_id: auth.user_id as string,
+			users_ind: auth.users_ind as number,
 			username: username,
 			user_role: auth.user_role as string,
 			job: auth.job as string,
@@ -230,6 +237,7 @@ export async function authenticateUser(
 			jwt: '',
 			full_name: null,
 			user_id: null,
+			users_ind: null,
 			username: null,
 			authStatus: false,
 			err: null,
@@ -239,6 +247,7 @@ export async function authenticateUser(
 			jwt: '',
 			full_name: auth.full_name as string,
 			user_id: auth.user_id as string,
+			users_ind: null,
 			username: auth.username as string,
 			authStatus: false,
 			err: null,
@@ -262,13 +271,14 @@ export async function authenticate(
 	status: boolean;
 	full_name: string | null;
 	user_id: string | null;
+	users_ind: number | null;
 	username: string | null;
 	user_role?: string | null;
 	job?: string | null;
 }> {
 	try {
 		const sql = {
-			text: `SELECT user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER (username) = LOWER($1);`,
+			text: `SELECT ind, user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER (username) = LOWER($1);`,
 			values: [username],
 		};
 		const result = await getPGClient(sql.text, sql.values, new Error().stack);
@@ -278,20 +288,19 @@ export async function authenticate(
 				status: false,
 				full_name: null,
 				user_id: null,
+				users_ind: null,
 				username: username,
 			};
 		} else {
 			// username is found
 			const pass_digest = result.rows[0].user_password;
-			const full_name = result.rows[0].full_name;
-			const user_id = result.rows[0].user_id;
-			const user_role = result.rows[0].user_role;
-			const job = result.rows[0].job;
+			const { ind, user_id, full_name, user_role, job } = result.rows[0];
 			const authenticated: boolean = bcrypt.compareSync(password, pass_digest);
 			return {
 				status: authenticated, //true if authenticated, false if not authenticated
 				full_name: full_name, // will always return the full name
 				user_id: user_id, // will always return the user_id
+				users_ind: ind, // will always return the users_ind
 				username: result.rows[0].username, // will always return the username
 				user_role: user_role,
 				job: job,
@@ -305,7 +314,13 @@ export async function authenticate(
 		} else {
 			console.log(`${error}`);
 		}
-		return { status: false, full_name: '', user_id: '', username: username };
+		return {
+			status: false,
+			full_name: '',
+			user_id: '',
+			username: username,
+			users_ind: null,
+		};
 	}
 }
 

@@ -1,12 +1,12 @@
-DROP TABLE IF EXISTS procedures.lab;
+DROP TABLE IF EXISTS procedures_schema.lab;
 
-DROP TABLE IF EXISTS procedures.imaging;
+DROP TABLE IF EXISTS procedures_schema.imaging;
 
-DROP TABLE IF EXISTS procedures.paperwork;
+DROP TABLE IF EXISTS procedures_schema.paperwork;
 
-DROP TABLE IF EXISTS procedures.procedure;
+DROP TABLE IF EXISTS procedures_schema.procedure;
 
-DROP SCHEMA IF EXISTS procedures;
+DROP SCHEMA IF EXISTS procedures_schema;
 
 DROP TABLE IF EXISTS inventory.item_movement;
 
@@ -64,6 +64,8 @@ DROP TABLE IF EXISTS patients.liver_condition;
 
 DROP TABLE IF EXISTS patients.chronic_disease;
 
+DROP TABLE IF EXISTS patients.patients_contact;
+
 DROP TABLE IF EXISTS patients.personal;
 
 DROP SCHEMA IF EXISTS patients;
@@ -72,7 +74,7 @@ DROP TABLE IF EXISTS finance.payment_category;
 
 DROP SCHEMA IF EXISTS finance;
 
-DROP TABLE IF EXISTS users.contact;
+DROP TABLE IF EXISTS users.user_contact;
 
 DROP TABLE IF EXISTS users.qualification;
 

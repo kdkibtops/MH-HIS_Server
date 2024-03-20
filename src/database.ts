@@ -26,7 +26,7 @@ export type dbConnectionTestResult = {
 	returnVal: unknown;
 };
 
-export const testDBConncetion = async (): Promise<
+export const testDBConnection = async (): Promise<
 	| {
 			status: 'Connected';
 			returnVal: {};
