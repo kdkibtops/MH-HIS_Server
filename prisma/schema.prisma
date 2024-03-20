@@ -1,14 +1,261 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("PRISMA_DB_URL")
+  schemas  = ["inventory", "main", "orders_schema"]
 }
 
-model migrations {
-  id     Int      @id @default(autoincrement())
-  name   String   @db.VarChar(255)
-  run_on DateTime @db.Timestamp(6)
+model categories {
+  ind           Int         @unique(map: "categories_index") @default(autoincrement())
+  category_id   String      @id @db.VarChar(50)
+  category_name String?     @db.VarChar(100)
+  updated_by    String?     @db.VarChar(50)
+  last_update   String?     @db.VarChar(50)
+  users         users?      @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+  materials     materials[]
+
+  @@schema("inventory")
+}
+
+model item_movements {
+  ind                                    Int           @unique(map: "item_movements_index") @default(autoincrement())
+  movement_id                            String        @id @db.VarChar(50)
+  trasnaction_id                         String?       @db.VarChar(50)
+  item_id                                String?       @db.VarChar(50)
+  amount                                 Int?
+  movement_date                          String?       @db.VarChar(50)
+  status                                 String?       @db.VarChar(6)
+  cost                                   Float?
+  username                               String?       @db.VarChar(50)
+  updated_by                             String?       @db.VarChar(50)
+  last_update                            String?       @db.VarChar(50)
+  materials                              materials?    @relation(fields: [item_id], references: [item_id], onDelete: NoAction)
+  transactions                           transactions? @relation(fields: [trasnaction_id], references: [transaction_id], onDelete: NoAction)
+  users_item_movements_updated_byTousers users?        @relation("item_movements_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
+  users_item_movements_usernameTousers   users?        @relation("item_movements_usernameTousers", fields: [username], references: [username], onDelete: NoAction)
+
+  @@schema("inventory")
+}
+
+model materials {
+  ind            Int              @unique(map: "materials_index") @default(autoincrement())
+  item_id        String           @id @db.VarChar(50)
+  item_name      String?          @db.VarChar(100)
+  category       String?          @db.VarChar(50)
+  store_id       String?          @db.VarChar(50)
+  price          Float?
+  stock          Int?
+  updated_by     String?          @db.VarChar(50)
+  last_update    String?          @db.VarChar(50)
+  item_movements item_movements[]
+  categories     categories?      @relation(fields: [category], references: [category_id], onDelete: NoAction)
+  stores         stores?          @relation(fields: [store_id], references: [store_id], onDelete: NoAction)
+  users          users?           @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+
+  @@schema("inventory")
+}
+
+model stores {
+  ind                            Int         @unique(map: "stores_index") @default(autoincrement())
+  store_id                       String      @id @db.VarChar(50)
+  store_name                     String?     @db.VarChar(50)
+  location                       String?     @db.VarChar(50)
+  trustee                        String?     @db.VarChar(50)
+  last_checked                   String?     @db.VarChar(50)
+  updated_by                     String?     @db.VarChar(50)
+  last_update                    String?     @db.VarChar(50)
+  materials                      materials[]
+  users_stores_trusteeTousers    users?      @relation("stores_trusteeTousers", fields: [trustee], references: [username], onDelete: NoAction)
+  users_stores_updated_byTousers users?      @relation("stores_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
+
+  @@schema("inventory")
+}
+
+model transactions {
+  ind                                  Int              @unique(map: "transactions_index") @default(autoincrement())
+  transaction_id                       String           @id @db.VarChar(50)
+  mrn                                  String?          @db.VarChar(150)
+  username                             String?          @db.VarChar(50)
+  items_id                             String[]         @db.VarChar(50)
+  procedure_id                         String?          @db.VarChar(50)
+  updated_by                           String?          @db.VarChar(50)
+  last_update                          String?          @db.VarChar(50)
+  item_movements                       item_movements[]
+  patients                             patients?        @relation(fields: [mrn], references: [mrn], onDelete: NoAction)
+  procedures                           procedures?      @relation(fields: [procedure_id], references: [procedure_id], onDelete: NoAction)
+  users_transactions_updated_byTousers users?           @relation("transactions_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
+  users_transactions_usernameTousers   users?           @relation("transactions_usernameTousers", fields: [username], references: [username], onDelete: NoAction)
+
+  @@schema("inventory")
+}
+
+model clinics {
+  ind                                      Int       @unique(map: "clinics_index") @default(autoincrement())
+  clinic_id                                Int       @id
+  clinic_date                              String?   @db.VarChar(50)
+  patients_id                              String[]  @db.VarChar
+  start_time                               DateTime? @db.Date
+  close_time                               DateTime? @db.Date
+  attending_physician                      String?   @db.VarChar(50)
+  updated_by                               String?   @db.VarChar(50)
+  last_update                              String?   @db.VarChar(75)
+  users_clinics_attending_physicianTousers users?    @relation("clinics_attending_physicianTousers", fields: [attending_physician], references: [username], onDelete: NoAction)
+  users_clinics_updated_byTousers          users?    @relation("clinics_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
+
+  @@schema("main")
+}
+
+model orders {
+  ind                             Int         @unique @default(autoincrement())
+  order_id                        String      @id @db.VarChar(100)
+  mrn                             String?     @db.VarChar(150)
+  age                             Float?
+  study_id                        String?     @db.VarChar(150)
+  o_date                          DateTime?   @db.Date
+  o_status                        String?     @db.VarChar(20)
+  radiologist                     String?     @db.VarChar(75)
+  referring_phys                  String?     @db.VarChar(75)
+  report_status                   String?     @db.VarChar(50)
+  critical                        String?     @db.VarChar(50)
+  radiation_dose                  Float?
+  study_instance_uid              String?     @unique @db.VarChar
+  series_count                    Int?
+  updated_by                      String?     @db.VarChar(50)
+  last_update                     String?     @db.VarChar(75)
+  patients                        patients?   @relation(fields: [mrn], references: [mrn], onDelete: Cascade)
+  users_orders_radiologistTousers users?      @relation("orders_radiologistTousers", fields: [radiologist], references: [username], onDelete: NoAction)
+  studies                         studies?    @relation(fields: [study_id], references: [study_id], onDelete: NoAction)
+  users_orders_updated_byTousers  users?      @relation("orders_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
+  paperwork                       paperwork[]
+
+  @@schema("main")
+}
+
+model patients {
+  ind          Int            @unique(map: "patients_index") @default(autoincrement())
+  mrn          String         @id @db.VarChar(150)
+  category     String?        @db.VarChar(15)
+  rank         String?        @db.VarChar(20)
+  status       String?        @db.VarChar(20)
+  patient_name String?        @db.VarChar(100)
+  national_id  String?        @db.VarChar(14)
+  dob          String?        @db.VarChar(50)
+  gender       String?        @db.VarChar
+  contacts     String?        @db.VarChar
+  email        String?        @db.VarChar(150)
+  updated_by   String?        @db.VarChar(50)
+  last_update  String?        @db.VarChar(75)
+  transactions transactions[]
+  orders       orders[]
+  users        users?         @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+
+  @@schema("main")
+}
+
+model procedures {
+  ind                  Int            @unique(map: "procedures_index") @default(autoincrement())
+  procedure_id         String         @id @db.VarChar(50)
+  procedure_name       String?        @db.VarChar(100)
+  laboratory           String[]       @db.VarChar(50)
+  imaging              String[]       @db.VarChar(50)
+  recommended_material String[]       @db.VarChar(150)
+  paperwork            Json?          @db.Json
+  updated_by           String?        @db.VarChar(50)
+  last_update          String?        @db.VarChar(50)
+  transactions         transactions[]
+  users                users?         @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+
+  @@schema("main")
+}
+
+model setupdata {
+  ind                 Int     @id @default(autoincrement())
+  data_id             String? @db.VarChar(10)
+  selectOptions       Json?   @db.Json
+  selectOptionsValues Json?   @db.Json
+  RAQSdictionary      Json?   @db.Json
+  specialFields       Json?   @db.Json
+  pageConstants       Json?   @db.Json
+
+  @@schema("main")
+}
+
+model studies {
+  ind         Int      @unique(map: "studies_index") @default(autoincrement())
+  study_id    String   @id @db.VarChar(150)
+  modality    String?  @db.VarChar(10)
+  study_name  String?  @db.VarChar(100)
+  arabic_name String?  @db.VarChar
+  price       Float?
+  updated_by  String?  @db.VarChar(50)
+  last_update String?  @db.VarChar(75)
+  orders      orders[]
+  users       users?   @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+
+  @@schema("main")
+}
+
+model user_roles {
+  ind             Int     @unique(map: "user_roles_index") @default(autoincrement())
+  role_id         Int     @id
+  role_name       String? @db.VarChar(50)
+  role_privileges Json?   @db.Json
+  updated_by      String? @db.VarChar(50)
+  last_update     String? @db.VarChar(75)
+  users           users[]
+
+  @@schema("main")
+}
+
+model users {
+  ind                                             Int              @unique(map: "users_index") @default(autoincrement())
+  user_id                                         String?          @db.VarChar(50)
+  username                                        String           @id @db.VarChar(50)
+  full_name                                       String?          @db.VarChar(75)
+  user_password                                   String?
+  user_role                                       Int?
+  job                                             String?          @db.VarChar(100)
+  email                                           String?          @db.VarChar(150)
+  verified                                        Boolean?
+  user_config                                     Json?            @db.Json
+  uploads                                         Json?            @db.Json
+  last_update                                     String?          @db.VarChar(75)
+  categories                                      categories[]
+  item_movements_item_movements_updated_byTousers item_movements[] @relation("item_movements_updated_byTousers")
+  item_movements_item_movements_usernameTousers   item_movements[] @relation("item_movements_usernameTousers")
+  materials                                       materials[]
+  stores_stores_trusteeTousers                    stores[]         @relation("stores_trusteeTousers")
+  stores_stores_updated_byTousers                 stores[]         @relation("stores_updated_byTousers")
+  transactions_transactions_updated_byTousers     transactions[]   @relation("transactions_updated_byTousers")
+  transactions_transactions_usernameTousers       transactions[]   @relation("transactions_usernameTousers")
+  clinics_clinics_attending_physicianTousers      clinics[]        @relation("clinics_attending_physicianTousers")
+  clinics_clinics_updated_byTousers               clinics[]        @relation("clinics_updated_byTousers")
+  orders_orders_radiologistTousers                orders[]         @relation("orders_radiologistTousers")
+  orders_orders_updated_byTousers                 orders[]         @relation("orders_updated_byTousers")
+  patients                                        patients[]
+  procedures                                      procedures[]
+  studies                                         studies[]
+  user_roles                                      user_roles?      @relation(fields: [user_role], references: [role_id], onDelete: Cascade)
+  paperwork                                       paperwork[]
+
+  @@schema("main")
+}
+
+model paperwork {
+  ind            Int     @id @default(autoincrement())
+  order_ind      Int?
+  order_id       String? @db.VarChar(100)
+  paperwork_name String? @db.VarChar(50)
+  paperwork_path String?
+  category       String? @db.VarChar(50)
+  updated_by     String? @db.VarChar(50)
+  last_update    String? @db.VarChar(75)
+  orders         orders? @relation(fields: [order_id], references: [order_id], onDelete: Cascade, map: "fkey_ord_paperwork")
+  users          users?  @relation(fields: [updated_by], references: [username], onDelete: NoAction, map: "fkey_ord_updated_by")
+
+  @@schema("orders_schema")
 }
