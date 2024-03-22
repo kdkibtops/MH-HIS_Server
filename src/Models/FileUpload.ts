@@ -33,8 +33,7 @@ export const getOrderPatientData = async (
 			);
 		const sqlGetOrder = sqlCreate.BUILDSQL()[0];
 		const res = await getPGClient(sqlGetOrder, [], new Error().stack);
-
-		const order = res && res.rowCount > 0 ? res.rows[0] : null;
+		const order = res && (res.rowCount as number) > 0 ? res.rows[0] : null;
 		sqlCreate
 			.SELECT(
 				{ tablesNames: 'patients', columnsNames: '*', asColumnsName: null },
@@ -50,7 +49,7 @@ export const getOrderPatientData = async (
 		const sqlGePatient = sqlCreate.BUILDSQL()[0];
 		const resPatient = await getPGClient(sqlGePatient, [], new Error().stack);
 		const patient =
-			order && resPatient && resPatient.rowCount > 0
+			order && resPatient && (resPatient.rowCount as number) > 0
 				? resPatient.rows[0]
 				: null;
 		return { patient: patient, order: order };

@@ -1,10 +1,7 @@
 import client from './database';
 import { getDateInEgypt } from './config/getDate';
-import { appendFile, createWriteStream, existsSync, mkdirSync } from 'fs';
-import { logError } from './helpers/errorLogging';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import path from 'path';
-import pino from 'pino';
-import { Console } from 'console';
 import { QueryResult } from 'pg';
 export const getPGClient = async (
 	text: string,
@@ -15,7 +12,7 @@ export const getPGClient = async (
 		console.log(text);
 		const conn = await client.connect();
 		const start = Date.now();
-		const res = await conn.query(text, values);
+		const res = await conn.query(text, values ? values : undefined);
 		const duration = Date.now() - start + ' ms';
 		conn.release();
 

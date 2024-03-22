@@ -5,257 +5,860 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("PRISMA_DB_URL")
-  schemas  = ["inventory", "main", "orders_schema"]
+  url      = env("DATABASE_URL")
+  schemas  = ["custom_views", "finance", "inventory", "laboratory", "patients", "procedures_schema", "radiology", "users"]
 }
 
-model categories {
-  ind           Int         @unique(map: "categories_index") @default(autoincrement())
-  category_id   String      @id @db.VarChar(50)
-  category_name String?     @db.VarChar(100)
-  updated_by    String?     @db.VarChar(50)
-  last_update   String?     @db.VarChar(50)
-  users         users?      @relation(fields: [updated_by], references: [username], onDelete: NoAction)
-  materials     materials[]
+model bills {
+  ind                         Int               @id @default(autoincrement())
+  bill_id                     Int?              @unique
+  payment_category_ind        Int?
+  total_exclusive             Float?
+  vat_tax                     Float?
+  other_tax                   Float?
+  total_inclusive             Float?
+  discount                    Float?
+  net_to_pay                  Float?
+  payement_due                DateTime?         @db.Date
+  payed_at                    DateTime?         @db.Date
+  issued_by                   Int?
+  revised_by                  Int?
+  created_at                  DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at                  DateTime?         @default(now()) @db.Timestamp(6)
+  created_by                  Int?
+  updated_by                  Int?
+  user_bills_created_byTouser user?             @relation("bills_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_bills_issued_byTouser  user?             @relation("bills_issued_byTouser", fields: [issued_by], references: [ind], onDelete: NoAction)
+  payment_category            payment_category? @relation(fields: [payment_category_ind], references: [ind], onDelete: NoAction)
+  user_bills_revised_byTouser user?             @relation("bills_revised_byTouser", fields: [revised_by], references: [ind], onDelete: NoAction)
+  user_bills_updated_byTouser user?             @relation("bills_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  transactions                transactions[]
+  lab_order                   lab_order[]
+  radiology_order             radiology_order[]
 
-  @@schema("inventory")
+  @@schema("finance")
 }
 
-model item_movements {
-  ind                                    Int           @unique(map: "item_movements_index") @default(autoincrement())
-  movement_id                            String        @id @db.VarChar(50)
-  trasnaction_id                         String?       @db.VarChar(50)
-  item_id                                String?       @db.VarChar(50)
-  amount                                 Int?
-  movement_date                          String?       @db.VarChar(50)
-  status                                 String?       @db.VarChar(6)
-  cost                                   Float?
-  username                               String?       @db.VarChar(50)
-  updated_by                             String?       @db.VarChar(50)
-  last_update                            String?       @db.VarChar(50)
-  materials                              materials?    @relation(fields: [item_id], references: [item_id], onDelete: NoAction)
-  transactions                           transactions? @relation(fields: [trasnaction_id], references: [transaction_id], onDelete: NoAction)
-  users_item_movements_updated_byTousers users?        @relation("item_movements_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
-  users_item_movements_usernameTousers   users?        @relation("item_movements_usernameTousers", fields: [username], references: [username], onDelete: NoAction)
+model payment_category {
+  ind                                                  Int        @id @default(autoincrement())
+  payment_id                                           Int?       @unique
+  payment_name                                         String?    @db.VarChar(50)
+  account                                              String?    @db.VarChar(50)
+  max_coverage_limit                                   Int?
+  payment_range_in_days                                Int?
+  created_at                                           DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at                                           DateTime?  @default(now()) @db.Timestamp(6)
+  created_by                                           Int?
+  updated_by                                           Int?
+  bills                                                bills[]
+  user_payment_category_created_byTouser               user?      @relation("payment_category_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_payment_category_updated_byTouser               user?      @relation("payment_category_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  personal_personal_payment_categoryTopayment_category personal[] @relation("personal_payment_categoryTopayment_category")
 
-  @@schema("inventory")
-}
-
-model materials {
-  ind            Int              @unique(map: "materials_index") @default(autoincrement())
-  item_id        String           @id @db.VarChar(50)
-  item_name      String?          @db.VarChar(100)
-  category       String?          @db.VarChar(50)
-  store_id       String?          @db.VarChar(50)
-  price          Float?
-  stock          Int?
-  updated_by     String?          @db.VarChar(50)
-  last_update    String?          @db.VarChar(50)
-  item_movements item_movements[]
-  categories     categories?      @relation(fields: [category], references: [category_id], onDelete: NoAction)
-  stores         stores?          @relation(fields: [store_id], references: [store_id], onDelete: NoAction)
-  users          users?           @relation(fields: [updated_by], references: [username], onDelete: NoAction)
-
-  @@schema("inventory")
-}
-
-model stores {
-  ind                            Int         @unique(map: "stores_index") @default(autoincrement())
-  store_id                       String      @id @db.VarChar(50)
-  store_name                     String?     @db.VarChar(50)
-  location                       String?     @db.VarChar(50)
-  trustee                        String?     @db.VarChar(50)
-  last_checked                   String?     @db.VarChar(50)
-  updated_by                     String?     @db.VarChar(50)
-  last_update                    String?     @db.VarChar(50)
-  materials                      materials[]
-  users_stores_trusteeTousers    users?      @relation("stores_trusteeTousers", fields: [trustee], references: [username], onDelete: NoAction)
-  users_stores_updated_byTousers users?      @relation("stores_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
-
-  @@schema("inventory")
+  @@schema("finance")
 }
 
 model transactions {
-  ind                                  Int              @unique(map: "transactions_index") @default(autoincrement())
-  transaction_id                       String           @id @db.VarChar(50)
-  mrn                                  String?          @db.VarChar(150)
-  username                             String?          @db.VarChar(50)
-  items_id                             String[]         @db.VarChar(50)
-  procedure_id                         String?          @db.VarChar(50)
-  updated_by                           String?          @db.VarChar(50)
-  last_update                          String?          @db.VarChar(50)
-  item_movements                       item_movements[]
-  patients                             patients?        @relation(fields: [mrn], references: [mrn], onDelete: NoAction)
-  procedures                           procedures?      @relation(fields: [procedure_id], references: [procedure_id], onDelete: NoAction)
-  users_transactions_updated_byTousers users?           @relation("transactions_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
-  users_transactions_usernameTousers   users?           @relation("transactions_usernameTousers", fields: [username], references: [username], onDelete: NoAction)
+  ind                                Int       @id @default(autoincrement())
+  transaction_name                   String?   @db.VarChar(100)
+  transaction_at                     DateTime? @db.Timestamp(6)
+  bill_ind                           Int?
+  issued_by                          Int?
+  created_at                         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                         DateTime? @default(now()) @db.Timestamp(6)
+  created_by                         Int?
+  updated_by                         Int?
+  bills                              bills?    @relation(fields: [bill_ind], references: [ind], onDelete: NoAction)
+  user_transactions_created_byTouser user?     @relation("transactions_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_transactions_issued_byTouser  user?     @relation("transactions_issued_byTouser", fields: [issued_by], references: [ind], onDelete: NoAction)
+  user_transactions_updated_byTouser user?     @relation("transactions_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("finance")
+}
+
+model categories {
+  ind                              Int       @id @default(autoincrement())
+  inv_category_id                  String?   @unique @db.VarChar(50)
+  category_name                    String?   @db.VarChar(100)
+  created_at                       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                       DateTime? @default(now()) @db.Timestamp(6)
+  created_by                       Int?
+  updated_by                       Int?
+  user_categories_created_byTouser user?     @relation("categories_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_categories_updated_byTouser user?     @relation("categories_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
 
   @@schema("inventory")
 }
 
-model clinics {
-  ind                                      Int       @unique(map: "clinics_index") @default(autoincrement())
-  clinic_id                                Int       @id
-  clinic_date                              String?   @db.VarChar(50)
-  patients_id                              String[]  @db.VarChar
-  start_time                               DateTime? @db.Date
-  close_time                               DateTime? @db.Date
-  attending_physician                      String?   @db.VarChar(50)
-  updated_by                               String?   @db.VarChar(50)
-  last_update                              String?   @db.VarChar(75)
-  users_clinics_attending_physicianTousers users?    @relation("clinics_attending_physicianTousers", fields: [attending_physician], references: [username], onDelete: NoAction)
-  users_clinics_updated_byTousers          users?    @relation("clinics_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
+model item_movement {
+  ind                                 Int       @id @default(autoincrement())
+  item_ind                            Int?
+  amount                              Int?
+  movement_date                       String?   @db.VarChar(50)
+  movement_status                     String?   @db.VarChar(6)
+  moved_from                          String?   @db.VarChar(100)
+  moved_to                            String?   @db.VarChar(100)
+  created_at                          DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                          DateTime? @default(now()) @db.Timestamp(6)
+  created_by                          Int?
+  updated_by                          Int?
+  user_item_movement_created_byTouser user?     @relation("item_movement_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  material                            material? @relation(fields: [item_ind], references: [ind], onDelete: NoAction)
+  user_item_movement_updated_byTouser user?     @relation("item_movement_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
 
-  @@schema("main")
+  @@schema("inventory")
 }
 
-model orders {
-  ind                             Int         @unique @default(autoincrement())
-  order_id                        String      @id @db.VarChar(100)
-  mrn                             String?     @db.VarChar(150)
-  age                             Float?
-  study_id                        String?     @db.VarChar(150)
-  o_date                          DateTime?   @db.Date
-  o_status                        String?     @db.VarChar(20)
-  radiologist                     String?     @db.VarChar(75)
-  referring_phys                  String?     @db.VarChar(75)
-  report_status                   String?     @db.VarChar(50)
-  critical                        String?     @db.VarChar(50)
-  radiation_dose                  Float?
-  study_instance_uid              String?     @unique @db.VarChar
-  series_count                    Int?
-  updated_by                      String?     @db.VarChar(50)
-  last_update                     String?     @db.VarChar(75)
-  patients                        patients?   @relation(fields: [mrn], references: [mrn], onDelete: Cascade)
-  users_orders_radiologistTousers users?      @relation("orders_radiologistTousers", fields: [radiologist], references: [username], onDelete: NoAction)
-  studies                         studies?    @relation(fields: [study_id], references: [study_id], onDelete: NoAction)
-  users_orders_updated_byTousers  users?      @relation("orders_updated_byTousers", fields: [updated_by], references: [username], onDelete: NoAction)
-  paperwork                       paperwork[]
+model material {
+  ind                            Int             @id @default(autoincrement())
+  material_id                    String?         @unique @db.VarChar(50)
+  sku                            String?         @db.VarChar(12)
+  item_name                      String?         @db.VarChar(100)
+  category                       Int?
+  store_id                       Int?
+  price                          Float?
+  stock                          Int?
+  created_at                     DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime?       @default(now()) @db.Timestamp(6)
+  created_by                     Int?
+  updated_by                     Int?
+  item_movement                  item_movement[]
+  store_material_categoryTostore store?          @relation("material_categoryTostore", fields: [category], references: [ind], onDelete: Cascade)
+  user_material_created_byTouser user?           @relation("material_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  store_material_store_idTostore store?          @relation("material_store_idTostore", fields: [store_id], references: [ind], onDelete: Cascade)
+  user_material_updated_byTouser user?           @relation("material_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
 
-  @@schema("main")
+  @@schema("inventory")
 }
 
-model patients {
-  ind          Int            @unique(map: "patients_index") @default(autoincrement())
-  mrn          String         @id @db.VarChar(150)
-  category     String?        @db.VarChar(15)
-  rank         String?        @db.VarChar(20)
-  status       String?        @db.VarChar(20)
-  patient_name String?        @db.VarChar(100)
-  national_id  String?        @db.VarChar(14)
-  dob          String?        @db.VarChar(50)
-  gender       String?        @db.VarChar
-  contacts     String?        @db.VarChar
-  email        String?        @db.VarChar(150)
-  updated_by   String?        @db.VarChar(50)
-  last_update  String?        @db.VarChar(75)
-  transactions transactions[]
-  orders       orders[]
-  users        users?         @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+model store {
+  ind                               Int        @id @default(autoincrement())
+  store_id                          String?    @unique @db.VarChar(50)
+  store_name                        String?    @db.VarChar(50)
+  store_location                    String?    @db.VarChar(50)
+  trustee                           Int?
+  created_at                        DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at                        DateTime?  @default(now()) @db.Timestamp(6)
+  created_by                        Int?
+  updated_by                        Int?
+  material_material_categoryTostore material[] @relation("material_categoryTostore")
+  material_material_store_idTostore material[] @relation("material_store_idTostore")
+  user_store_created_byTouser       user?      @relation("store_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_store_trusteeTouser          user?      @relation("store_trusteeTouser", fields: [trustee], references: [ind], onDelete: NoAction)
+  user_store_updated_byTouser       user?      @relation("store_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
 
-  @@schema("main")
+  @@schema("inventory")
 }
 
-model procedures {
-  ind                  Int            @unique(map: "procedures_index") @default(autoincrement())
-  procedure_id         String         @id @db.VarChar(50)
-  procedure_name       String?        @db.VarChar(100)
-  laboratory           String[]       @db.VarChar(50)
-  imaging              String[]       @db.VarChar(50)
-  recommended_material String[]       @db.VarChar(150)
-  paperwork            Json?          @db.Json
-  updated_by           String?        @db.VarChar(50)
-  last_update          String?        @db.VarChar(50)
-  transactions         transactions[]
-  users                users?         @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+model external_lab {
+  ind                                Int                 @id @default(autoincrement())
+  ext_lab_id                         Int?                @unique
+  lab_name                           String?             @db.VarChar(100)
+  full_address                       String?             @db.VarChar(150)
+  city                               String?             @db.VarChar(50)
+  country                            String?             @db.VarChar(50)
+  district                           String?             @db.VarChar(50)
+  primary_contact                    String?             @db.VarChar(50)
+  secondary_contact                  String?             @db.VarChar(50)
+  emergency_contact                  String?             @db.VarChar(50)
+  email                              String?             @db.VarChar(50)
+  result_range_in_hours              Int?
+  payment_range_in_days              Int?
+  created_at                         DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at                         DateTime?           @default(now()) @db.Timestamp(6)
+  created_by                         Int?
+  updated_by                         Int?
+  user_external_lab_created_byTouser user?               @relation("external_lab_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_external_lab_updated_byTouser user?               @relation("external_lab_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  external_lab_test                  external_lab_test[]
+  lab_order                          lab_order[]
 
-  @@schema("main")
+  @@schema("laboratory")
 }
 
-model setupdata {
-  ind                 Int     @id @default(autoincrement())
-  data_id             String? @db.VarChar(10)
-  selectOptions       Json?   @db.Json
-  selectOptionsValues Json?   @db.Json
-  RAQSdictionary      Json?   @db.Json
-  specialFields       Json?   @db.Json
-  pageConstants       Json?   @db.Json
+model external_lab_test {
+  ind                                     Int           @id @default(autoincrement())
+  test_ind                                Int?
+  external_lab_id                         Int?
+  created_at                              DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at                              DateTime?     @default(now()) @db.Timestamp(6)
+  created_by                              Int?
+  updated_by                              Int?
+  user_external_lab_test_created_byTouser user?         @relation("external_lab_test_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  external_lab                            external_lab? @relation(fields: [external_lab_id], references: [ind], onDelete: Cascade)
+  test                                    test?         @relation(fields: [test_ind], references: [ind], onDelete: Cascade)
+  user_external_lab_test_updated_byTouser user?         @relation("external_lab_test_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
 
-  @@schema("main")
+  @@schema("laboratory")
 }
 
-model studies {
-  ind         Int      @unique(map: "studies_index") @default(autoincrement())
-  study_id    String   @id @db.VarChar(150)
-  modality    String?  @db.VarChar(10)
-  study_name  String?  @db.VarChar(100)
-  arabic_name String?  @db.VarChar
-  price       Float?
-  updated_by  String?  @db.VarChar(50)
-  last_update String?  @db.VarChar(75)
-  orders      orders[]
-  users       users?   @relation(fields: [updated_by], references: [username], onDelete: NoAction)
+model lab_order {
+  ind                                 Int                  @id @default(autoincrement())
+  lab_order_id                        String?              @unique @db.VarChar(100)
+  patient_ind                         Int?
+  test_ind                            Int?
+  request_date                        DateTime?            @db.Timestamp(6)
+  o_status                            String?              @db.VarChar(20)
+  o_date                              DateTime?            @db.Date
+  start_time                          DateTime?            @db.Time(6)
+  end_time                            DateTime?            @db.Time(6)
+  bill_ind                            Int?
+  test_location                       Int?
+  chemist                             Int?
+  pathologist                         Int?
+  referring_phys                      Int?
+  report_status                       String?              @db.VarChar(50)
+  critical                            String?              @db.VarChar(50)
+  created_at                          DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at                          DateTime?            @default(now()) @db.Timestamp(6)
+  created_by                          Int?
+  updated_by                          Int?
+  bills                               bills?               @relation(fields: [bill_ind], references: [ind], onDelete: NoAction)
+  user_lab_order_chemistTouser        user?                @relation("lab_order_chemistTouser", fields: [chemist], references: [ind], onDelete: NoAction)
+  user_lab_order_created_byTouser     user?                @relation("lab_order_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_lab_order_pathologistTouser    user?                @relation("lab_order_pathologistTouser", fields: [pathologist], references: [ind], onDelete: NoAction)
+  personal                            personal?            @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_lab_order_referring_physTouser user?                @relation("lab_order_referring_physTouser", fields: [referring_phys], references: [ind], onDelete: NoAction)
+  test                                test?                @relation(fields: [test_ind], references: [ind], onDelete: Cascade)
+  external_lab                        external_lab?        @relation(fields: [test_location], references: [ind], onDelete: Cascade)
+  user_lab_order_updated_byTouser     user?                @relation("lab_order_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  lab_order_document                  lab_order_document[]
 
-  @@schema("main")
+  @@schema("laboratory")
 }
 
-model user_roles {
-  ind             Int     @unique(map: "user_roles_index") @default(autoincrement())
-  role_id         Int     @id
-  role_name       String? @db.VarChar(50)
-  role_privileges Json?   @db.Json
-  updated_by      String? @db.VarChar(50)
-  last_update     String? @db.VarChar(75)
-  users           users[]
+model lab_order_document {
+  ind                                      Int        @id @default(autoincrement())
+  order_ind                                Int?
+  document_name                            String?    @default("Report") @db.VarChar(50)
+  document_description                     String?    @db.VarChar(150)
+  document_file_path                       String?
+  created_at                               DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime?  @default(now()) @db.Timestamp(6)
+  created_by                               Int?
+  updated_by                               Int?
+  user_lab_order_document_created_byTouser user?      @relation("lab_order_document_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  lab_order                                lab_order? @relation(fields: [order_ind], references: [ind], onDelete: NoAction, onUpdate: NoAction)
+  user_lab_order_document_updated_byTouser user?      @relation("lab_order_document_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
 
-  @@schema("main")
+  @@schema("laboratory")
 }
 
-model users {
-  ind                                             Int              @unique(map: "users_index") @default(autoincrement())
-  user_id                                         String?          @db.VarChar(50)
-  username                                        String           @id @db.VarChar(50)
-  full_name                                       String?          @db.VarChar(75)
-  user_password                                   String?
-  user_role                                       Int?
-  job                                             String?          @db.VarChar(100)
-  email                                           String?          @db.VarChar(150)
-  verified                                        Boolean?
-  user_config                                     Json?            @db.Json
-  uploads                                         Json?            @db.Json
-  last_update                                     String?          @db.VarChar(75)
-  categories                                      categories[]
-  item_movements_item_movements_updated_byTousers item_movements[] @relation("item_movements_updated_byTousers")
-  item_movements_item_movements_usernameTousers   item_movements[] @relation("item_movements_usernameTousers")
-  materials                                       materials[]
-  stores_stores_trusteeTousers                    stores[]         @relation("stores_trusteeTousers")
-  stores_stores_updated_byTousers                 stores[]         @relation("stores_updated_byTousers")
-  transactions_transactions_updated_byTousers     transactions[]   @relation("transactions_updated_byTousers")
-  transactions_transactions_usernameTousers       transactions[]   @relation("transactions_usernameTousers")
-  clinics_clinics_attending_physicianTousers      clinics[]        @relation("clinics_attending_physicianTousers")
-  clinics_clinics_updated_byTousers               clinics[]        @relation("clinics_updated_byTousers")
-  orders_orders_radiologistTousers                orders[]         @relation("orders_radiologistTousers")
-  orders_orders_updated_byTousers                 orders[]         @relation("orders_updated_byTousers")
-  patients                                        patients[]
-  procedures                                      procedures[]
-  studies                                         studies[]
-  user_roles                                      user_roles?      @relation(fields: [user_role], references: [role_id], onDelete: Cascade)
-  paperwork                                       paperwork[]
+model test {
+  ind                        Int                 @id @default(autoincrement())
+  test_id                    String?             @unique @db.VarChar(150)
+  category                   String?             @db.VarChar(20)
+  test_name                  String?             @db.VarChar(100)
+  arabic_name                String?             @db.VarChar
+  price                      Float?
+  created_at                 DateTime?           @default(now()) @db.Timestamp(6)
+  updated_at                 DateTime?           @default(now()) @db.Timestamp(6)
+  created_by                 Int?
+  updated_by                 Int?
+  external_lab_test          external_lab_test[]
+  lab_order                  lab_order[]
+  user_test_created_byTouser user?               @relation("test_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_test_updated_byTouser user?               @relation("test_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  proc_lab                   proc_lab[]
 
-  @@schema("main")
+  @@schema("laboratory")
 }
 
-model paperwork {
-  ind            Int     @id @default(autoincrement())
-  order_ind      Int?
-  order_id       String? @db.VarChar(100)
-  paperwork_name String? @db.VarChar(50)
-  paperwork_path String?
-  category       String? @db.VarChar(50)
-  updated_by     String? @db.VarChar(50)
-  last_update    String? @db.VarChar(75)
-  orders         orders? @relation(fields: [order_id], references: [order_id], onDelete: Cascade, map: "fkey_ord_paperwork")
-  users          users?  @relation(fields: [updated_by], references: [username], onDelete: NoAction, map: "fkey_ord_updated_by")
+model chronic_diseases_list {
+  ind                                         Int                        @id @default(autoincrement())
+  disease_name                                String                     @unique @db.VarChar(50)
+  organ                                       String?                    @db.VarChar(50)
+  system_affected                             String?                    @db.VarChar(50)
+  disease_noted                               String?                    @db.VarChar
+  created_at                                  DateTime?                  @default(now()) @db.Timestamp(6)
+  updated_at                                  DateTime?                  @default(now()) @db.Timestamp(6)
+  created_by                                  Int?
+  updated_by                                  Int?
+  user_chronic_diseases_list_created_byTouser user?                      @relation("chronic_diseases_list_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_chronic_diseases_list_updated_byTouser user?                      @relation("chronic_diseases_list_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  patient_chronic_diseases                    patient_chronic_diseases[]
 
-  @@schema("orders_schema")
+  @@schema("patients")
+}
+
+model clinical {
+  ind                            Int                       @id @default(autoincrement())
+  patient_ind                    Int?
+  dm                             Int?
+  htn                            Int?
+  smoking                        Boolean?
+  created_at                     DateTime?                 @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime?                 @default(now()) @db.Timestamp(6)
+  created_by                     Int?
+  updated_by                     Int?
+  user_clinical_created_byTouser user?                     @relation("clinical_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  diabetes_description           diabetes_description?     @relation(fields: [dm], references: [ind], onDelete: Cascade)
+  hypertension_description       hypertension_description? @relation(fields: [htn], references: [ind], onDelete: Cascade)
+  personal                       personal?                 @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_clinical_updated_byTouser user?                     @relation("clinical_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model diabetes_description {
+  ind                                        Int        @id @default(autoincrement())
+  max_fasting                                Int?
+  min_fasting                                Int?
+  max_post_prandial                          Int?
+  min_post_prandial                          Int?
+  max_hba1c                                  Float?
+  min_hba1c                                  Float?
+  retina                                     String?    @db.VarChar(100)
+  kidney                                     String?    @db.VarChar(100)
+  coronaries                                 String?    @db.VarChar(100)
+  cerebral                                   String?    @db.VarChar(100)
+  neuropathy                                 String?    @db.VarChar(100)
+  created_at                                 DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at                                 DateTime?  @default(now()) @db.Timestamp(6)
+  created_by                                 Int?
+  updated_by                                 Int?
+  clinical                                   clinical[]
+  user_diabetes_description_created_byTouser user?      @relation("diabetes_description_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_diabetes_description_updated_byTouser user?      @relation("diabetes_description_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model hypertension_description {
+  ind                                            Int        @id @default(autoincrement())
+  max_systolic                                   Int?
+  min_diastolic                                  Int?
+  retina                                         String?    @db.VarChar(100)
+  kidney                                         String?    @db.VarChar(100)
+  coronaries                                     String?    @db.VarChar(100)
+  cerebral                                       String?    @db.VarChar(100)
+  neuropathy                                     String?    @db.VarChar(100)
+  created_at                                     DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at                                     DateTime?  @default(now()) @db.Timestamp(6)
+  created_by                                     Int?
+  updated_by                                     Int?
+  clinical                                       clinical[]
+  user_hypertension_description_created_byTouser user?      @relation("hypertension_description_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_hypertension_description_updated_byTouser user?      @relation("hypertension_description_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model liver_condition {
+  ind                                   Int       @id @default(autoincrement())
+  patient_ind                           Int?
+  condition_date                        DateTime? @db.Date
+  hcv_infection                         Boolean?
+  hcv_ag                                Boolean?
+  hcv_ab                                Boolean?
+  hcv_ttt                               String?   @db.VarChar(150)
+  hbv_infection                         Boolean?
+  hbv_ag                                Boolean?
+  hbv_ab                                Boolean?
+  hbv_ttt                               String?   @db.VarChar(150)
+  albumin                               Float?
+  ast                                   Int?
+  alt                                   Int?
+  total_bilirubin                       Float?
+  direct_bilirubin                      Float?
+  inr                                   Float?
+  ascites                               String?   @db.VarChar(10)
+  child_score                           Int?
+  created_at                            DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                            DateTime? @default(now()) @db.Timestamp(6)
+  created_by                            Int?
+  updated_by                            Int?
+  user_liver_condition_created_byTouser user?     @relation("liver_condition_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                              personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_liver_condition_updated_byTouser user?     @relation("liver_condition_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patient_chronic_diseases {
+  ind                                            Int                   @id @default(autoincrement())
+  patient_ind                                    Int
+  disease_ind                                    Int
+  created_at                                     DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at                                     DateTime?             @default(now()) @db.Timestamp(6)
+  created_by                                     Int?
+  updated_by                                     Int?
+  user_patient_chronic_diseases_created_byTouser user?                 @relation("patient_chronic_diseases_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  chronic_diseases_list                          chronic_diseases_list @relation(fields: [disease_ind], references: [ind], onDelete: Cascade)
+  personal                                       personal              @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patient_chronic_diseases_updated_byTouser user?                 @relation("patient_chronic_diseases_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patient_contacts {
+  ind                                    Int       @id @default(autoincrement())
+  patient_ind                            Int?
+  contact_description                    String?   @db.VarChar(75)
+  contact_value                          String?   @db.VarChar(100)
+  contact_notes                          String?   @db.VarChar(200)
+  created_at                             DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                             DateTime? @default(now()) @db.Timestamp(6)
+  created_by                             Int?
+  updated_by                             Int?
+  user_patient_contacts_created_byTouser user?     @relation("patient_contacts_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                               personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patient_contacts_updated_byTouser user?     @relation("patient_contacts_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patient_imaging {
+  ind                                   Int       @id @default(autoincrement())
+  patient_ind                           Int?
+  study_date                            DateTime? @db.Date
+  study_name                            String?   @db.VarChar(50)
+  result_key_value                      Json?     @db.Json
+  created_at                            DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                            DateTime? @default(now()) @db.Timestamp(6)
+  created_by                            Int?
+  updated_by                            Int?
+  user_patient_imaging_created_byTouser user?     @relation("patient_imaging_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                              personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patient_imaging_updated_byTouser user?     @relation("patient_imaging_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patient_intervention {
+  ind                                        Int       @id @default(autoincrement())
+  patient_ind                                Int?
+  intervention_name                          String    @db.VarChar(50)
+  intervention_date                          DateTime? @db.Date
+  complications                              String?
+  done_by                                    String?   @db.VarChar(100)
+  done_at                                    String?   @db.VarChar(100)
+  created_at                                 DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                                 DateTime? @default(now()) @db.Timestamp(6)
+  created_by                                 Int?
+  updated_by                                 Int?
+  user_patient_intervention_created_byTouser user?     @relation("patient_intervention_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                                   personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patient_intervention_updated_byTouser user?     @relation("patient_intervention_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patient_investigation {
+  ind                                         Int       @id @default(autoincrement())
+  patient_ind                                 Int?
+  investigation_date                          DateTime? @db.Date
+  investigation_name                          String    @db.VarChar(50)
+  result_key_value                            Json?     @db.Json
+  created_at                                  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                                  DateTime? @default(now()) @db.Timestamp(6)
+  created_by                                  Int?
+  updated_by                                  Int?
+  user_patient_investigation_created_byTouser user?     @relation("patient_investigation_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                                    personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patient_investigation_updated_byTouser user?     @relation("patient_investigation_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patient_laboratory {
+  ind                                      Int       @id @default(autoincrement())
+  patient_ind                              Int?
+  lab_date                                 DateTime? @db.Date
+  test_name                                String?   @db.VarChar(50)
+  result_key_value                         Json?     @db.Json
+  created_at                               DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime? @default(now()) @db.Timestamp(6)
+  created_by                               Int?
+  updated_by                               Int?
+  user_patient_laboratory_created_byTouser user?     @relation("patient_laboratory_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                                 personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patient_laboratory_updated_byTouser user?     @relation("patient_laboratory_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model patients_paperwork {
+  ind                                      Int       @id @default(autoincrement())
+  patient_ind                              Int?
+  document_description                     String?   @db.VarChar(150)
+  document_date                            String?   @db.VarChar(12)
+  submit_date                              String?   @db.VarChar(12)
+  document_file_path                       String?
+  created_at                               DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime? @default(now()) @db.Timestamp(6)
+  created_by                               Int?
+  updated_by                               Int?
+  user_patients_paperwork_created_byTouser user?     @relation("patients_paperwork_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                                 personal? @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_patients_paperwork_updated_byTouser user?     @relation("patients_paperwork_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("patients")
+}
+
+model personal {
+  ind                                                          Int                        @id @default(autoincrement())
+  mrn                                                          String?                    @unique @db.VarChar(100)
+  personal_id                                                  String?                    @unique @db.VarChar(100)
+  first_name                                                   String?                    @db.VarChar(150)
+  middle_name                                                  String?                    @db.VarChar(50)
+  last_name                                                    String?                    @db.VarChar(50)
+  dob                                                          DateTime?                  @db.Date
+  gender                                                       String?                    @db.VarChar(10)
+  payment_category                                             Int?
+  created_at                                                   DateTime?                  @default(now()) @db.Timestamp(6)
+  updated_at                                                   DateTime?                  @default(now()) @db.Timestamp(6)
+  created_by                                                   Int?
+  updated_by                                                   Int?
+  lab_order                                                    lab_order[]
+  clinical                                                     clinical[]
+  liver_condition                                              liver_condition[]
+  patient_chronic_diseases                                     patient_chronic_diseases[]
+  patient_contacts                                             patient_contacts[]
+  patient_imaging                                              patient_imaging[]
+  patient_intervention                                         patient_intervention[]
+  patient_investigation                                        patient_investigation[]
+  patient_laboratory                                           patient_laboratory[]
+  patients_paperwork                                           patients_paperwork[]
+  user_personal_created_byTouser                               user?                      @relation("personal_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  payment_category_personal_payment_categoryTopayment_category payment_category?          @relation("personal_payment_categoryTopayment_category", fields: [payment_category], references: [ind], onDelete: Cascade)
+  user_personal_updated_byTouser                               user?                      @relation("personal_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  radiology_order                                              radiology_order[]
+
+  @@schema("patients")
+}
+
+model proc {
+  ind                        Int              @id @default(autoincrement())
+  proc_id                    String?          @unique @db.VarChar(50)
+  proc_name                  String?          @db.VarChar(100)
+  price                      Float?
+  created_at                 DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at                 DateTime?        @default(now()) @db.Timestamp(6)
+  created_by                 Int?
+  updated_by                 Int?
+  user_proc_created_byTouser user?            @relation("proc_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_proc_updated_byTouser user?            @relation("proc_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  proc_imaging               proc_imaging[]
+  proc_lab                   proc_lab[]
+  proc_paperwork             proc_paperwork[]
+
+  @@schema("procedures_schema")
+}
+
+model proc_imaging {
+  ind                                Int       @id @default(autoincrement())
+  procedure_ind                      Int?
+  study_ind                          Int?
+  created_at                         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                         DateTime? @default(now()) @db.Timestamp(6)
+  created_by                         Int?
+  updated_by                         Int?
+  user_proc_imaging_created_byTouser user?     @relation("proc_imaging_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  proc                               proc?     @relation(fields: [procedure_ind], references: [ind], onDelete: Cascade)
+  study                              study?    @relation(fields: [study_ind], references: [ind], onDelete: Cascade)
+  user_proc_imaging_updated_byTouser user?     @relation("proc_imaging_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("procedures_schema")
+}
+
+model proc_lab {
+  ind                            Int       @id @default(autoincrement())
+  procedure_ind                  Int?
+  test_id                        Int?
+  max_limit                      Float?
+  min_limit                      Float?
+  created_at                     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime? @default(now()) @db.Timestamp(6)
+  created_by                     Int?
+  updated_by                     Int?
+  user_proc_lab_created_byTouser user?     @relation("proc_lab_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  proc                           proc?     @relation(fields: [procedure_ind], references: [ind], onDelete: Cascade)
+  test                           test?     @relation(fields: [test_id], references: [ind], onDelete: Cascade)
+  user_proc_lab_updated_byTouser user?     @relation("proc_lab_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("procedures_schema")
+}
+
+model proc_paperwork {
+  ind                                  Int       @id @default(autoincrement())
+  procedure_ind                        Int?
+  document_name                        Int?
+  document_description                 String?   @db.VarChar(150)
+  document_file_path                   String?
+  created_at                           DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                           DateTime? @default(now()) @db.Timestamp(6)
+  created_by                           Int?
+  updated_by                           Int?
+  user_proc_paperwork_created_byTouser user?     @relation("proc_paperwork_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  proc                                 proc?     @relation(fields: [procedure_ind], references: [ind], onDelete: Cascade)
+  user_proc_paperwork_updated_byTouser user?     @relation("proc_paperwork_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("procedures_schema")
+}
+
+model rad_order_document {
+  ind                                      Int              @id @default(autoincrement())
+  order_ind                                Int?
+  document_name                            String?          @default("Report") @db.VarChar(50)
+  document_description                     String?          @db.VarChar(150)
+  document_file_path                       String?
+  created_at                               DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at                               DateTime?        @default(now()) @db.Timestamp(6)
+  created_by                               Int?
+  updated_by                               Int?
+  user_rad_order_document_created_byTouser user?            @relation("rad_order_document_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  radiology_order                          radiology_order? @relation(fields: [order_ind], references: [ind], onDelete: NoAction, onUpdate: NoAction)
+  user_rad_order_document_updated_byTouser user?            @relation("rad_order_document_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("radiology")
+}
+
+model radiology_order {
+  ind                                       Int                  @id @default(autoincrement())
+  rad_order_id                              String?              @unique @db.VarChar(100)
+  patient_ind                               Int?
+  study_ind                                 Int?
+  technician                                Int?
+  radiologist                               Int?
+  referring_phys                            Int?
+  o_status                                  String?              @db.VarChar(20)
+  request_date                              DateTime?            @db.Date
+  o_date                                    DateTime?            @db.Date
+  start_time                                DateTime?            @db.Time(6)
+  end_time                                  DateTime?            @db.Time(6)
+  bill_ind                                  Int?
+  report_status                             String?              @db.VarChar(50)
+  cancelled_notes                           String?
+  critical                                  String?              @db.VarChar(50)
+  radiation_dose                            Float?
+  study_instance_uid                        String?              @unique @db.VarChar
+  series_count                              Int?
+  created_at                                DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at                                DateTime?            @default(now()) @db.Timestamp(6)
+  created_by                                Int?
+  updated_by                                Int?
+  rad_order_document                        rad_order_document[]
+  bills                                     bills?               @relation(fields: [bill_ind], references: [ind], onDelete: NoAction)
+  user_radiology_order_created_byTouser     user?                @relation("radiology_order_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  personal                                  personal?            @relation(fields: [patient_ind], references: [ind], onDelete: Cascade)
+  user_radiology_order_radiologistTouser    user?                @relation("radiology_order_radiologistTouser", fields: [radiologist], references: [ind], onDelete: NoAction)
+  user_radiology_order_referring_physTouser user?                @relation("radiology_order_referring_physTouser", fields: [referring_phys], references: [ind], onDelete: NoAction)
+  study                                     study?               @relation(fields: [study_ind], references: [ind], onDelete: NoAction)
+  user_radiology_order_technicianTouser     user?                @relation("radiology_order_technicianTouser", fields: [technician], references: [ind], onDelete: NoAction)
+  user_radiology_order_updated_byTouser     user?                @relation("radiology_order_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("radiology")
+}
+
+model study {
+  ind                                                          Int                @id @default(autoincrement())
+  study_id                                                     String?            @unique @db.VarChar(150)
+  modality                                                     String?            @db.VarChar(10)
+  study_name                                                   String?            @db.VarChar(100)
+  arabic_name                                                  String?            @db.VarChar
+  price                                                        Float?
+  study_preparation                                            Int?
+  created_at                                                   DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at                                                   DateTime?          @default(now()) @db.Timestamp(6)
+  created_by                                                   Int?
+  updated_by                                                   Int?
+  proc_imaging                                                 proc_imaging[]
+  radiology_order                                              radiology_order[]
+  user_study_created_byTouser                                  user?              @relation("study_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  study_preparation_study_study_preparationTostudy_preparation study_preparation? @relation("study_study_preparationTostudy_preparation", fields: [study_preparation], references: [ind], onDelete: Cascade)
+  user_study_updated_byTouser                                  user?              @relation("study_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("radiology")
+}
+
+model study_preparation {
+  ind                                              Int       @id @default(autoincrement())
+  hint_text                                        String?
+  document_file_path                               String?
+  created_at                                       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                                       DateTime? @default(now()) @db.Timestamp(6)
+  created_by                                       Int?
+  updated_by                                       Int?
+  study_study_study_preparationTostudy_preparation study[]   @relation("study_study_preparationTostudy_preparation")
+  user_study_preparation_created_byTouser          user?     @relation("study_preparation_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_study_preparation_updated_byTouser          user?     @relation("study_preparation_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+
+  @@schema("radiology")
+}
+
+model job {
+  ind                Int       @id @default(autoincrement())
+  job_id             Int?      @unique
+  job_name           String?   @db.VarChar(70)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+  user_user_jobTojob user[]    @relation("user_jobTojob")
+
+  @@schema("users")
+}
+
+model qualification_categories {
+  ind                                            Int              @id @default(autoincrement())
+  category_name                                  String?          @unique @db.VarChar(50)
+  category_description                           String?          @db.VarChar(200)
+  created_at                                     DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at                                     DateTime?        @default(now()) @db.Timestamp(6)
+  created_by                                     Int?
+  updated_by                                     Int?
+  user_qualification_categories_created_byTouser user?            @relation("qualification_categories_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_qualification_categories_updated_byTouser user?            @relation("qualification_categories_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  qualifications                                 qualifications[]
+
+  @@schema("users")
+}
+
+model qualifications {
+  ind                                  Int                       @id @default(autoincrement())
+  qualification_category_ind           Int?
+  user_ind                             Int?
+  qualification_description            String?                   @db.VarChar
+  document_url                         String?
+  created_at                           DateTime?                 @default(now()) @db.Timestamp(6)
+  updated_at                           DateTime?                 @default(now()) @db.Timestamp(6)
+  created_by                           Int?
+  updated_by                           Int?
+  user_qualifications_created_byTouser user?                     @relation("qualifications_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  qualification_categories             qualification_categories? @relation(fields: [qualification_category_ind], references: [ind], onDelete: NoAction)
+  user_qualifications_updated_byTouser user?                     @relation("qualifications_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  user_qualifications_user_indTouser   user?                     @relation("qualifications_user_indTouser", fields: [user_ind], references: [ind], onDelete: Cascade)
+
+  @@schema("users")
+}
+
+model user {
+  ind                                                                Int                        @id @default(autoincrement())
+  username                                                           String?                    @unique @db.VarChar(50)
+  first_name                                                         String?                    @db.VarChar(50)
+  middle_name                                                        String?                    @db.VarChar(50)
+  last_name                                                          String?                    @db.VarChar(50)
+  dob                                                                String?                    @db.VarChar(12)
+  user_password                                                      String?                    @db.VarChar(80)
+  user_role                                                          Int?
+  job                                                                Int?
+  user_config                                                        Json?                      @db.Json
+  created_at                                                         DateTime?                  @default(now()) @db.Timestamp(6)
+  updated_at                                                         DateTime?                  @default(now()) @db.Timestamp(6)
+  bills_bills_created_byTouser                                       bills[]                    @relation("bills_created_byTouser")
+  bills_bills_issued_byTouser                                        bills[]                    @relation("bills_issued_byTouser")
+  bills_bills_revised_byTouser                                       bills[]                    @relation("bills_revised_byTouser")
+  bills_bills_updated_byTouser                                       bills[]                    @relation("bills_updated_byTouser")
+  payment_category_payment_category_created_byTouser                 payment_category[]         @relation("payment_category_created_byTouser")
+  payment_category_payment_category_updated_byTouser                 payment_category[]         @relation("payment_category_updated_byTouser")
+  transactions_transactions_created_byTouser                         transactions[]             @relation("transactions_created_byTouser")
+  transactions_transactions_issued_byTouser                          transactions[]             @relation("transactions_issued_byTouser")
+  transactions_transactions_updated_byTouser                         transactions[]             @relation("transactions_updated_byTouser")
+  categories_categories_created_byTouser                             categories[]               @relation("categories_created_byTouser")
+  categories_categories_updated_byTouser                             categories[]               @relation("categories_updated_byTouser")
+  item_movement_item_movement_created_byTouser                       item_movement[]            @relation("item_movement_created_byTouser")
+  item_movement_item_movement_updated_byTouser                       item_movement[]            @relation("item_movement_updated_byTouser")
+  material_material_created_byTouser                                 material[]                 @relation("material_created_byTouser")
+  material_material_updated_byTouser                                 material[]                 @relation("material_updated_byTouser")
+  store_store_created_byTouser                                       store[]                    @relation("store_created_byTouser")
+  store_store_trusteeTouser                                          store[]                    @relation("store_trusteeTouser")
+  store_store_updated_byTouser                                       store[]                    @relation("store_updated_byTouser")
+  external_lab_external_lab_created_byTouser                         external_lab[]             @relation("external_lab_created_byTouser")
+  external_lab_external_lab_updated_byTouser                         external_lab[]             @relation("external_lab_updated_byTouser")
+  external_lab_test_external_lab_test_created_byTouser               external_lab_test[]        @relation("external_lab_test_created_byTouser")
+  external_lab_test_external_lab_test_updated_byTouser               external_lab_test[]        @relation("external_lab_test_updated_byTouser")
+  lab_order_lab_order_chemistTouser                                  lab_order[]                @relation("lab_order_chemistTouser")
+  lab_order_lab_order_created_byTouser                               lab_order[]                @relation("lab_order_created_byTouser")
+  lab_order_lab_order_pathologistTouser                              lab_order[]                @relation("lab_order_pathologistTouser")
+  lab_order_lab_order_referring_physTouser                           lab_order[]                @relation("lab_order_referring_physTouser")
+  lab_order_lab_order_updated_byTouser                               lab_order[]                @relation("lab_order_updated_byTouser")
+  lab_order_document_lab_order_document_created_byTouser             lab_order_document[]       @relation("lab_order_document_created_byTouser")
+  lab_order_document_lab_order_document_updated_byTouser             lab_order_document[]       @relation("lab_order_document_updated_byTouser")
+  test_test_created_byTouser                                         test[]                     @relation("test_created_byTouser")
+  test_test_updated_byTouser                                         test[]                     @relation("test_updated_byTouser")
+  chronic_diseases_list_chronic_diseases_list_created_byTouser       chronic_diseases_list[]    @relation("chronic_diseases_list_created_byTouser")
+  chronic_diseases_list_chronic_diseases_list_updated_byTouser       chronic_diseases_list[]    @relation("chronic_diseases_list_updated_byTouser")
+  clinical_clinical_created_byTouser                                 clinical[]                 @relation("clinical_created_byTouser")
+  clinical_clinical_updated_byTouser                                 clinical[]                 @relation("clinical_updated_byTouser")
+  diabetes_description_diabetes_description_created_byTouser         diabetes_description[]     @relation("diabetes_description_created_byTouser")
+  diabetes_description_diabetes_description_updated_byTouser         diabetes_description[]     @relation("diabetes_description_updated_byTouser")
+  hypertension_description_hypertension_description_created_byTouser hypertension_description[] @relation("hypertension_description_created_byTouser")
+  hypertension_description_hypertension_description_updated_byTouser hypertension_description[] @relation("hypertension_description_updated_byTouser")
+  liver_condition_liver_condition_created_byTouser                   liver_condition[]          @relation("liver_condition_created_byTouser")
+  liver_condition_liver_condition_updated_byTouser                   liver_condition[]          @relation("liver_condition_updated_byTouser")
+  patient_chronic_diseases_patient_chronic_diseases_created_byTouser patient_chronic_diseases[] @relation("patient_chronic_diseases_created_byTouser")
+  patient_chronic_diseases_patient_chronic_diseases_updated_byTouser patient_chronic_diseases[] @relation("patient_chronic_diseases_updated_byTouser")
+  patient_contacts_patient_contacts_created_byTouser                 patient_contacts[]         @relation("patient_contacts_created_byTouser")
+  patient_contacts_patient_contacts_updated_byTouser                 patient_contacts[]         @relation("patient_contacts_updated_byTouser")
+  patient_imaging_patient_imaging_created_byTouser                   patient_imaging[]          @relation("patient_imaging_created_byTouser")
+  patient_imaging_patient_imaging_updated_byTouser                   patient_imaging[]          @relation("patient_imaging_updated_byTouser")
+  patient_intervention_patient_intervention_created_byTouser         patient_intervention[]     @relation("patient_intervention_created_byTouser")
+  patient_intervention_patient_intervention_updated_byTouser         patient_intervention[]     @relation("patient_intervention_updated_byTouser")
+  patient_investigation_patient_investigation_created_byTouser       patient_investigation[]    @relation("patient_investigation_created_byTouser")
+  patient_investigation_patient_investigation_updated_byTouser       patient_investigation[]    @relation("patient_investigation_updated_byTouser")
+  patient_laboratory_patient_laboratory_created_byTouser             patient_laboratory[]       @relation("patient_laboratory_created_byTouser")
+  patient_laboratory_patient_laboratory_updated_byTouser             patient_laboratory[]       @relation("patient_laboratory_updated_byTouser")
+  patients_paperwork_patients_paperwork_created_byTouser             patients_paperwork[]       @relation("patients_paperwork_created_byTouser")
+  patients_paperwork_patients_paperwork_updated_byTouser             patients_paperwork[]       @relation("patients_paperwork_updated_byTouser")
+  personal_personal_created_byTouser                                 personal[]                 @relation("personal_created_byTouser")
+  personal_personal_updated_byTouser                                 personal[]                 @relation("personal_updated_byTouser")
+  proc_proc_created_byTouser                                         proc[]                     @relation("proc_created_byTouser")
+  proc_proc_updated_byTouser                                         proc[]                     @relation("proc_updated_byTouser")
+  proc_imaging_proc_imaging_created_byTouser                         proc_imaging[]             @relation("proc_imaging_created_byTouser")
+  proc_imaging_proc_imaging_updated_byTouser                         proc_imaging[]             @relation("proc_imaging_updated_byTouser")
+  proc_lab_proc_lab_created_byTouser                                 proc_lab[]                 @relation("proc_lab_created_byTouser")
+  proc_lab_proc_lab_updated_byTouser                                 proc_lab[]                 @relation("proc_lab_updated_byTouser")
+  proc_paperwork_proc_paperwork_created_byTouser                     proc_paperwork[]           @relation("proc_paperwork_created_byTouser")
+  proc_paperwork_proc_paperwork_updated_byTouser                     proc_paperwork[]           @relation("proc_paperwork_updated_byTouser")
+  rad_order_document_rad_order_document_created_byTouser             rad_order_document[]       @relation("rad_order_document_created_byTouser")
+  rad_order_document_rad_order_document_updated_byTouser             rad_order_document[]       @relation("rad_order_document_updated_byTouser")
+  radiology_order_radiology_order_created_byTouser                   radiology_order[]          @relation("radiology_order_created_byTouser")
+  radiology_order_radiology_order_radiologistTouser                  radiology_order[]          @relation("radiology_order_radiologistTouser")
+  radiology_order_radiology_order_referring_physTouser               radiology_order[]          @relation("radiology_order_referring_physTouser")
+  radiology_order_radiology_order_technicianTouser                   radiology_order[]          @relation("radiology_order_technicianTouser")
+  radiology_order_radiology_order_updated_byTouser                   radiology_order[]          @relation("radiology_order_updated_byTouser")
+  study_study_created_byTouser                                       study[]                    @relation("study_created_byTouser")
+  study_study_updated_byTouser                                       study[]                    @relation("study_updated_byTouser")
+  study_preparation_study_preparation_created_byTouser               study_preparation[]        @relation("study_preparation_created_byTouser")
+  study_preparation_study_preparation_updated_byTouser               study_preparation[]        @relation("study_preparation_updated_byTouser")
+  qualification_categories_qualification_categories_created_byTouser qualification_categories[] @relation("qualification_categories_created_byTouser")
+  qualification_categories_qualification_categories_updated_byTouser qualification_categories[] @relation("qualification_categories_updated_byTouser")
+  qualifications_qualifications_created_byTouser                     qualifications[]           @relation("qualifications_created_byTouser")
+  qualifications_qualifications_updated_byTouser                     qualifications[]           @relation("qualifications_updated_byTouser")
+  qualifications_qualifications_user_indTouser                       qualifications[]           @relation("qualifications_user_indTouser")
+  job_user_jobTojob                                                  job?                       @relation("user_jobTojob", fields: [job], references: [ind], onDelete: NoAction)
+  user_role_user_user_roleTouser_role                                user_role?                 @relation("user_user_roleTouser_role", fields: [user_role], references: [ind], onDelete: NoAction)
+  user_contact_user_contact_created_byTouser                         user_contact[]             @relation("user_contact_created_byTouser")
+  user_contact_user_contact_updated_byTouser                         user_contact[]             @relation("user_contact_updated_byTouser")
+  user_contact_user_contact_user_indTouser                           user_contact[]             @relation("user_contact_user_indTouser")
+
+  @@schema("users")
+}
+
+model user_contact {
+  ind                                Int       @id @default(autoincrement())
+  user_ind                           Int?
+  contact_description                String?   @db.VarChar(75)
+  contact_value                      String?   @db.VarChar(100)
+  contact_notes                      String?   @db.VarChar(200)
+  created_at                         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                         DateTime? @default(now()) @db.Timestamp(6)
+  created_by                         Int?
+  updated_by                         Int?
+  user_user_contact_created_byTouser user?     @relation("user_contact_created_byTouser", fields: [created_by], references: [ind], onDelete: NoAction)
+  user_user_contact_updated_byTouser user?     @relation("user_contact_updated_byTouser", fields: [updated_by], references: [ind], onDelete: NoAction)
+  user_user_contact_user_indTouser   user?     @relation("user_contact_user_indTouser", fields: [user_ind], references: [ind], onDelete: Cascade)
+
+  @@schema("users")
+}
+
+model user_role {
+  ind                            Int       @id @default(autoincrement())
+  role_id                        Int?      @unique
+  role_name                      String?   @db.VarChar(50)
+  role_privileges                Json?     @db.Json
+  created_at                     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime? @default(now()) @db.Timestamp(6)
+  user_user_user_roleTouser_role user[]    @relation("user_user_roleTouser_role")
+
+  @@schema("users")
 }

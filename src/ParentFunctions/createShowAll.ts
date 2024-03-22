@@ -92,7 +92,7 @@ function createShowAllFunction(tableName: string): Function {
 			if (limited) {
 				return {
 					feedback: serviceStatus.success,
-					entCount: result ? result.rowCount : 0,
+					entCount: result?.rowCount || 0,
 					// create new object with the limited keys needed
 					data: result
 						? result.rows.map((entry) => {
@@ -105,7 +105,7 @@ function createShowAllFunction(tableName: string): Function {
 			} else {
 				return {
 					feedback: serviceStatus.success,
-					entCount: result ? result.rowCount : 0,
+					entCount: result?.rowCount || 0,
 					data: result ? result.rows : [],
 				};
 			}

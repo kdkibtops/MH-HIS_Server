@@ -90,7 +90,7 @@ function createSearchFunction(tableName: string): Function {
 				const entCount = res ? res.rowCount : 0;
 				return {
 					feedback: serviceStatus.success,
-					entCount: entCount,
+					entCount: result?.rowCount || 0,
 					data: result ? result.rows : [],
 				};
 			} else {

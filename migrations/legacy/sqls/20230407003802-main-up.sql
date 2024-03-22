@@ -280,16 +280,15 @@ VALUES
 );
 
 -- CREATE default admin user, username: admin, password: admin
-INSERT INTO main.users 
-("user_id","username","full_name","user_role","user_password") 
+INSERT INTO users.user 
+("username","first_name","user_role","user_password") 
 VALUES 
-('1',
+(
  'admin',
  'Admin',
  1,
  '$2b$10$iSPvkSNRPbNfDFKRq.AFhehLKIjK02SSKjbEfD8BxckS/.e8FxZD2'
 );
-
 -- INSERT MATERILAS & PROCEDURES FROM CSV Files
 
 -- CREATE TEMP TABLE temp_table_categories(

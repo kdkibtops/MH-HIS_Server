@@ -12,7 +12,7 @@ const getTableHeaders = async (req: Request, res: Response) => {
         AND table_name   = '${tableName}';`;
 		const conn = await client.connect();
 		const result = await conn.query(SQL);
-		if (result.rowCount > 0) {
+		if (result.rowCount && result.rowCount > 0) {
 			columns = result.rows.map((e) => e.column_name);
 			res.status(200).json({ columns: columns });
 		} else {

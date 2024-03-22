@@ -6,11 +6,11 @@ DROP TABLE IF EXISTS main.orders;
 
 DROP TABLE IF EXISTS inventory.item_movements;
 
-DROP TABLE IF EXISTS inventory.transactions;
-
 DROP TABLE IF EXISTS inventory.materials;
 
 DROP TABLE IF EXISTS inventory.categories;
+
+DROP TABLE IF EXISTS inventory.transactions;
 
 DROP TABLE IF EXISTS inventory.stores;
 

@@ -94,7 +94,7 @@ function createInsertFunction(tableName: string): Function {
 				const result = await getPGClient(SQL, [], new Error().stack);
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
-					entCount: result ? result.rowCount : 0,
+					entCount: result?.rowCount || 0,
 					data: result ? result.rows : [],
 				};
 			} else {

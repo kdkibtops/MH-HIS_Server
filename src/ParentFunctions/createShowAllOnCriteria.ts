@@ -413,7 +413,7 @@ function createShowAllOnCriteriaFunction(tableName: string): Function {
 					: [];
 				return {
 					feedback: LocalAConfig.serviceStatus.success,
-					entCount: entCount,
+					entCount: entCount || 0,
 					data: updatedArr,
 				};
 			} else {

@@ -29,7 +29,6 @@ import https from 'https';
 import sendServerConig from './Handlers/sendServerConfigHandler';
 import { dbConnectionTestResult, testDBConnection } from './database';
 import { startDICOMDCME } from './DICOM/DICOMServer';
-import { testPrismDB } from '../prisma/models/patients';
 
 /**Function to test connection with database */
 const DBConnectionTest = async (
@@ -76,7 +75,6 @@ const DBConnectionTest = async (
 };
 testDBConnection();
 startDICOMDCME();
-testPrismDB();
 
 let IP;
 const nets = networkInterfaces();

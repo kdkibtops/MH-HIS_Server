@@ -217,7 +217,7 @@ export async function insertUser_(
 		delete createduser.user_password;
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
+			entCount: result.rowCount || 0,
 			data: [createduser],
 		};
 	} catch (error) {
@@ -288,7 +288,7 @@ export async function searchUsers_(
 				username
 			);
 			const result = await conn.query(SQL);
-			rowCount = result.rowCount;
+			rowCount = result.rowCount || 0;
 			rows = result.rows;
 		} else if (user.username && !user.user_id) {
 			const username = user.username;
@@ -301,7 +301,7 @@ export async function searchUsers_(
 				'username'
 			);
 			const result = await conn.query(SQL);
-			rowCount = result.rowCount;
+			rowCount = result.rowCount || 0;
 			rows = result.rows;
 		} else if (user.user_id && !user.username) {
 			const user_id = user?.user_id;
@@ -315,7 +315,7 @@ export async function searchUsers_(
 				'user_id'
 			);
 			const result = await conn.query(SQL);
-			rowCount = result.rowCount;
+			rowCount = result.rowCount || 0;
 			rows = result.rows;
 		} else {
 			rowCount = 0;
@@ -391,7 +391,7 @@ export async function updateUser_(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
+			entCount: result.rowCount || 0,
 			data: [updateduser],
 		};
 	} catch (error) {
@@ -444,7 +444,7 @@ export async function showAllUsers_(
 		if (limited) {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				entCount: result.rowCount,
+				entCount: result?.rowCount || 0,
 				data: result.rows.map((user) => {
 					return {
 						user_id: user.user_id,
@@ -458,7 +458,7 @@ export async function showAllUsers_(
 		} else {
 			return {
 				feedback: LocalAConfig.serviceStatus.success,
-				entCount: result.rowCount,
+				entCount: result?.rowCount || 0,
 				data: result.rows,
 			};
 		}
@@ -517,7 +517,7 @@ export async function deleteUser_(
 		result.rows.forEach((e) => delete e.user_password);
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
+			entCount: result?.rowCount || 0,
 			data: result.rows,
 		};
 	} catch (error) {
@@ -566,7 +566,7 @@ export async function searcFilterhUsers(
 		result.rows.forEach((e) => delete e.user_password);
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
+			entCount: result.rowCount || 0,
 			data: result.rows,
 		};
 	} catch (error) {

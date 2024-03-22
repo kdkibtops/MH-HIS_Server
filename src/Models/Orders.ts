@@ -555,7 +555,7 @@ export async function searcFilterhOrders(
 		conn.release();
 		return {
 			feedback: LocalAConfig.serviceStatus.success,
-			entCount: result.rowCount,
+			entCount: result.rowCount || 0,
 			data: result.rows,
 		};
 	} catch (error) {
