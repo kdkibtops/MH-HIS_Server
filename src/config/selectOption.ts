@@ -12,6 +12,7 @@ export const selectOptionsValues = {
 		radiologist: 'Radiologist',
 		technician: 'Technician',
 		secretary: 'Secretary',
+		clinician: 'Clinician',
 		patient: 'Patient',
 	},
 	user_role: { admin: 1, radiologist: 2, user: 3 },

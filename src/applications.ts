@@ -21,7 +21,7 @@ import { networkInterfaces } from 'os';
 import proceduresHandler from './Handlers/proceduresHandler';
 import initalDataHandler from './Handlers/InitialDataHandler';
 import { LocalAConfig } from './config/LocalConfiguration';
-import updateDB from './syncDatabase';
+// import updateDB from './syncDatabase';
 import StatsHandler from './Handlers/StatsHandler';
 import DICOMHandler from './DICOM/DICOMHandlers';
 import { existsSync, readFileSync } from 'fs';
@@ -133,7 +133,7 @@ DICOMApp.use(urlencoded({ extended: false }));
 DICOMApp.use(json());
 // DICOMApp.use(cors(createCorsOptions('DICOM Listener')));
 DICOMApp.get('/event', (req, res) => {
-	updateDB();
+	// updateDB();
 	res.status(200).send('Updating databse');
 });
 

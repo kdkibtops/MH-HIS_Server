@@ -8,7 +8,7 @@ import {
 	startServerCallback,
 } from './applications';
 import { updateLoacalConfigJSON } from './config/LocalConfiguration';
-import updateDB from './syncDatabase';
+// import updateDB from './syncDatabase';
 const {
 	https_main_server_port,
 	https_auth_server_port,
@@ -36,7 +36,7 @@ authServerHTTPS.listen(https_auth_server_port, () =>
 );
 DICOMApp.listen(1200, () => startServerCallback('DICOM Listener', 1200));
 // Update Database to be replaced with another trigger route
-setInterval(() => {
-	console.log('Updating Database');
-	updateDB();
-}, 5000);
+// setInterval(() => {
+// 	console.log('Updating Database');
+// 	updateDB();
+// }, 5000);

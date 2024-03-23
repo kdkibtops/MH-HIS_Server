@@ -582,3 +582,50 @@ CREATE TABLE
         created_by INTEGER REFERENCES users.user (ind) ON UPDATE CASCADE,
         updated_by INTEGER REFERENCES users.user (ind) ON UPDATE CASCADE
     );
+
+-- CREATE default Admin role 
+INSERT INTO
+    "users"."user_role" ("role_id", "role_name", "role_privileges")
+VALUES
+    (
+        1,
+        'Admin',
+        '{"addRoles":true,"addUsers":true,"addPatients":true,"addStudies":true,"addOrders":true,"editRoles":true,"editUsers":true,"editPatients":true,"editStudies":true,"editOrders":true,"showAll":true,"showPending":true,"showVerified":true,"showPrinted":true,"showDelivered":true,"showAssigned":true,"editAll":true,"editPending":true,"editVerified":true,"editPrinted":true,"editDelivered":true,"editAssigned":true}'
+    ),
+    (
+        2,
+        'Staff',
+        '{"addRoles":true,"addUsers":true,"addPatients":true,"addStudies":true,"addOrders":true,"editRoles":true,"editUsers":true,"editPatients":true,"editStudies":true,"editOrders":true,"showAll":true,"showPending":true,"showVerified":true,"showPrinted":true,"showDelivered":true,"showAssigned":true,"editAll":true,"editPending":true,"editVerified":true,"editPrinted":true,"editDelivered":true,"editAssigned":true}'
+    ),
+    (
+        3,
+        'User',
+        '{"addRoles":true,"addUsers":true,"addPatients":true,"addStudies":true,"addOrders":true,"editRoles":true,"editUsers":true,"editPatients":true,"editStudies":true,"editOrders":true,"showAll":true,"showPending":true,"showVerified":true,"showPrinted":true,"showDelivered":true,"showAssigned":true,"editAll":true,"editPending":true,"editVerified":true,"editPrinted":true,"editDelivered":true,"editAssigned":true}'
+    );
+
+-- CREATE default admin user, username: admin, password: admin
+INSERT INTO
+    users.user (
+        "username",
+        "first_name",
+        "user_role",
+        "user_password"
+    )
+VALUES
+    (
+        'admin',
+        'Admin',
+        1,
+        '$2b$10$iSPvkSNRPbNfDFKRq.AFhehLKIjK02SSKjbEfD8BxckS/.e8FxZD2'
+    );
+
+-- CREATE default jobs
+INSERT INTO
+    users.job ("job_id", "job_name")
+VALUES
+    (1, 'HOD'),
+    (2, 'Radiologist'),
+    (3, 'Technician'),
+    (4, 'Secretary'),
+    (5, 'Clinician'),
+    (6, 'Patient');

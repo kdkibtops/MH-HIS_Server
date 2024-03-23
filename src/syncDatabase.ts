@@ -325,4 +325,4 @@ export const deleteStudyMySQL = async (
 	}
 };
 
-export default updateDB;
+// export default updateDB;

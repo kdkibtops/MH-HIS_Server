@@ -9,6 +9,12 @@ datasource db {
   schemas  = ["custom_views", "finance", "inventory", "laboratory", "patients", "procedures_schema", "radiology", "users"]
 }
 
+generator markdown {
+  provider = "prisma-markdown"
+  output   = "./ERD.md"
+  title    = "Shopping Mall"
+}
+
 model bills {
   ind                         Int               @id @default(autoincrement())
   bill_id                     Int?              @unique

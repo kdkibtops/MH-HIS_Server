@@ -1,7 +1,13 @@
+import { text } from 'body-parser';
 import app_Config from '../config/appConfig.json';
 import local_Configuration from '../config/localConfig.json';
 import { selectOptionsValues } from '../config/selectOption';
 import client from '../database';
+import {
+	prisma_radiology_order,
+	prisma_user,
+	prisma_userJob,
+} from '../prisma/exportPrismaModels';
 
 type AppConfig = {
 	selectOptions: object;
@@ -49,20 +55,61 @@ export const getInitialData = async (): Promise<
 		// the need to update the frontend because in our case here
 		// if new radiologist is added, the front-end need to be
 		// refreshed, otherwise the new radiologist will not appear in the list
-		const conn = await client.connect();
-		const sqlRadiolgists = `SELECT * FROM main.users WHERE job = '${selectOptionsValues.job.radiologist}'`;
-		const sqlReferringphys = `SELECT referring_phys FROM main.orders WHERE referring_phys IS NOT NULL`;
-		const radiologistsList = (await conn.query(sqlRadiolgists)).rows.map(
-			(r) => {
-				return { value: r.username, text: r.full_name };
-			}
-		) as { value: string; text: string }[];
-		const referringPhysList = (await conn.query(sqlReferringphys)).rows.map(
-			(r) => {
-				return { value: r.referring_phys, text: r.referring_phys };
-			}
-		) as { value: string; text: string }[];
-		conn.release();
+		const radiologists = await prisma_user.findMany({
+			select: {
+				username: true,
+				first_name: true,
+				middle_name: true,
+				last_name: true,
+				job_user_jobTojob: { select: { job_name: true } },
+			},
+			where: {
+				job_user_jobTojob: { job_name: selectOptionsValues.job.radiologist },
+			},
+		});
+		const referringPhys = await prisma_radiology_order.findMany({
+			select: {
+				referring_phys: true,
+				user_radiology_order_referring_physTouser: {
+					select: {
+						ind: true,
+						username: true,
+						first_name: true,
+						middle_name: true,
+						last_name: true,
+					},
+				},
+			},
+			where: { referring_phys: { not: null } },
+		});
+		const radiologistsList = radiologists.map((r) => {
+			return {
+				value: r.username,
+				text: `${r.first_name} ${r.middle_name} ${r.last_name}`,
+			};
+		}) as { value: string; text: string }[];
+		const referringPhysList = referringPhys.map((rp) => {
+			const rp_names = rp.user_radiology_order_referring_physTouser;
+			return {
+				value: rp.user_radiology_order_referring_physTouser?.username,
+				text: `${rp_names?.first_name} ${rp_names?.middle_name} ${rp_names?.last_name}`,
+			};
+		}) as { value: string; text: string }[];
+
+		// const conn = await client.connect();
+		// const sqlRadiolgists = `SELECT * FROM main.users WHERE job = '${selectOptionsValues.job.radiologist}'`;
+		// const sqlReferringphys = `SELECT referring_phys FROM main.orders WHERE referring_phys IS NOT NULL`;
+		// const radiologistsList = (await conn.query(sqlRadiolgists)).rows.map(
+		// 	(r) => {
+		// 		return { value: r.username, text: r.full_name };
+		// 	}
+		// ) as { value: string; text: string }[];
+		// const referringPhysList = (await conn.query(sqlReferringphys)).rows.map(
+		// 	(r) => {
+		// 		return { value: r.referring_phys, text: r.referring_phys };
+		// 	}
+		// ) as { value: string; text: string }[];
+		// conn.release();
 		const dropListSearch =
 			result.initialData[0].appConfiguration.pageConstants.orders.searchBars.filter(
 				(s) => s.searchType === 'droplist'
@@ -80,7 +127,6 @@ export const getInitialData = async (): Promise<
 					break;
 			}
 		});
-
 		return result;
 	} catch (error) {
 		return { err: error as Error, initialData: null };

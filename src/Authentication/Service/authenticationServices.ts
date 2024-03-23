@@ -16,6 +16,7 @@ import {
 import { text } from 'body-parser';
 import { logError } from '../../helpers/errorLogging';
 import getPGClient from '../../getPGClient';
+import { prisma_user } from '../../prisma/exportPrismaModels';
 
 const tokenSecret = setupData.JWT_access_secret;
 
@@ -89,6 +90,49 @@ export const registeruser = async (
 		};
 	}
 };
+export const registeruser_prisma = async (
+	reqBody: REQBODY,
+	callBackErr?: Function
+): Promise<User> => {
+	try {
+		const tableName = 'users';
+
+		const hashedPassword =
+			reqBody.users.user_password &&
+			bcrypt.hashSync(reqBody.users.user_password, genSaltSync());
+		reqBody.users.user_password = hashedPassword;
+		let enteries = Object.entries(reqBody);
+		const columnNames = enteries.map((e) => e[0]);
+		const values = enteries.map((e) => e[1]);
+		columnNames.push('created');
+		const newValues = [...values, new Date().toISOString()];
+		// values.push(new Date().toISOString());
+		const valuesSQL = newValues.map((val) => `'${val}'`);
+		const SQL = `INSERT INTO main.${tableName} 
+            (${[...columnNames]})
+            VALUES  
+            (${valuesSQL})
+            RETURNING
+            *;
+            `;
+		const conn = await client.connect();
+		const rawResult = await client.query(SQL);
+		conn.release();
+		const result = rawResult.rows[0];
+		const response: User = {
+			ind: result.ind,
+			full_name: result.full_name,
+			username: result.username,
+		};
+		return response;
+	} catch (error) {
+		console.log(`${error}`);
+		return {
+			username: '',
+			ind: 0,
+		};
+	}
+};
 
 // ------ ! -------- Start of authentication service functions ------ ! --------
 
@@ -104,8 +148,7 @@ export async function authentication(
 			accessToken: string;
 			full_name: string;
 			username: string;
-			user_id: string;
-			users_ind: number;
+			user_ind: number;
 			user_role: string;
 			job: string;
 	  }
@@ -125,8 +168,7 @@ export async function authentication(
 				accessToken: authUser.jwt,
 				full_name: authUser.full_name,
 				username: authUser.username,
-				user_id: authUser.user_id,
-				users_ind: authUser.users_ind,
+				user_ind: authUser.users_ind,
 				user_role: authUser.user_role,
 				job: authUser.job,
 			};
@@ -169,7 +211,6 @@ export async function authenticateUser(
 	| {
 			jwt: string;
 			full_name: string;
-			user_id: string;
 			users_ind: number;
 			username: string;
 			user_role: string;
@@ -180,7 +221,6 @@ export async function authenticateUser(
 	| {
 			jwt: '';
 			full_name: null;
-			user_id: null;
 			users_ind: null;
 			username: null;
 			authStatus: false;
@@ -189,8 +229,7 @@ export async function authenticateUser(
 	| {
 			jwt: '';
 			full_name: string;
-			user_id: string;
-			users_ind: null;
+			user_ind: null;
 			username: string;
 			authStatus: false;
 			err: null;
@@ -199,13 +238,12 @@ export async function authenticateUser(
 > {
 	const username: string = reqBody.username?.toLowerCase() as string;
 	const password: string = reqBody.user_password as string;
-	const auth = await authenticate(
+	const auth = await authenticate_prisma(
 		username,
 		password,
 		callBackErr && callBackErr
 	);
 	console.log(`'${username}' authenticated: ${auth.status}`);
-	console.log(bcrypt.hashSync(password, genSaltSync()));
 	if (auth.status === true) {
 		const BEARER_JWT = jwt.sign({ ...auth }, tokenSecret, {
 			expiresIn: LocalAConfig.tokenExpiry,
@@ -213,7 +251,6 @@ export async function authenticateUser(
 		const JWT: {
 			jwt: string;
 			full_name: string;
-			user_id: string;
 			users_ind: number;
 			username: string;
 			user_role: string;
@@ -223,8 +260,7 @@ export async function authenticateUser(
 		} = {
 			jwt: BEARER_JWT,
 			full_name: auth.full_name as string,
-			user_id: auth.user_id as string,
-			users_ind: auth.users_ind as number,
+			users_ind: auth.user_ind as number,
 			username: username,
 			user_role: auth.user_role as string,
 			job: auth.job as string,
@@ -236,7 +272,6 @@ export async function authenticateUser(
 		return {
 			jwt: '',
 			full_name: null,
-			user_id: null,
 			users_ind: null,
 			username: null,
 			authStatus: false,
@@ -246,8 +281,7 @@ export async function authenticateUser(
 		return {
 			jwt: '',
 			full_name: auth.full_name as string,
-			user_id: auth.user_id as string,
-			users_ind: null,
+			user_ind: null,
 			username: auth.username as string,
 			authStatus: false,
 			err: null,
@@ -263,47 +297,117 @@ export async function authenticateUser(
 }
 
 /** Compares user input password with password in DB and returns boolean DEBUGGED AND WORKING*/
-export async function authenticate(
+// export async function authenticate(
+// 	username: string,
+// 	password: string,
+// 	callBackErr?: Function
+// ): Promise<{
+// 	status: boolean;
+// 	full_name: string | null;
+// 	user_id: string | null;
+// 	user_ind: number | null;
+// 	username: string | null;
+// 	user_role?: string | null;
+// 	job?: string | null;
+// }> {
+// 	try {
+// 		const sql = {
+// 			text: `SELECT ind, user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER (username) = LOWER($1);`,
+// 			values: [username],
+// 		};
+// 		const result = await getPGClient(sql.text, sql.values, new Error().stack);
+// 		if (!result || result.rowCount === 0) {
+// 			// username is not found
+// 			return {
+// 				status: false,
+// 				full_name: null,
+// 				user_id: null,
+// 				user_ind: null,
+// 				username: username,
+// 			};
+// 		} else {
+// 			// username is found
+// 			const pass_digest = result.rows[0].user_password;
+// 			const { ind, user_id, full_name, user_role, job } = result.rows[0];
+// 			const authenticated: boolean = bcrypt.compareSync(password, pass_digest);
+// 			return {
+// 				status: authenticated, //true if authenticated, false if not authenticated
+// 				full_name: full_name, // will always return the full name
+// 				user_id: user_id, // will always return the user_id
+// 				user_ind: ind, // will always return the user_ind
+// 				username: result.rows[0].username, // will always return the username
+// 				user_role: user_role,
+// 				job: job,
+// 			};
+// 		}
+// 	} catch (error) {
+// 		const err = error as Error;
+// 		err.name = LocalAConfig.errorNames.authenticationError;
+// 		if (callBackErr) {
+// 			callBackErr(err);
+// 		} else {
+// 			console.log(`${error}`);
+// 		}
+// 		return {
+// 			status: false,
+// 			full_name: '',
+// 			user_id: '',
+// 			username: username,
+// 			user_ind: null,
+// 		};
+// 	}
+// }
+
+// ------ ! -------- End of authentication service functions ------ ! --------
+/** Compares user input password with password in DB and returns boolean DEBUGGED AND WORKING*/
+export async function authenticate_prisma(
 	username: string,
 	password: string,
 	callBackErr?: Function
 ): Promise<{
 	status: boolean;
 	full_name: string | null;
-	user_id: string | null;
-	users_ind: number | null;
+	user_ind: number | null;
 	username: string | null;
 	user_role?: string | null;
 	job?: string | null;
 }> {
+	console.log('Prisma authentication');
 	try {
-		const sql = {
-			text: `SELECT ind, user_id, user_password,full_name,username,user_role, job, email from main.users WHERE LOWER (username) = LOWER($1);`,
-			values: [username],
-		};
-		const result = await getPGClient(sql.text, sql.values, new Error().stack);
-		if (!result || result.rowCount === 0) {
+		const result = await prisma_user.findFirst({
+			where: { username: { mode: 'insensitive', equals: username } },
+			include: {
+				job_user_jobTojob: { select: { job_name: true } },
+				user_role_user_user_roleTouser_role: { select: { role_name: true } },
+			},
+		});
+		if (!result) {
 			// username is not found
 			return {
 				status: false,
 				full_name: null,
-				user_id: null,
-				users_ind: null,
+				user_ind: null,
 				username: username,
 			};
 		} else {
 			// username is found
-			const pass_digest = result.rows[0].user_password;
-			const { ind, user_id, full_name, user_role, job } = result.rows[0];
+			const pass_digest = result.user_password as string;
+			const {
+				ind,
+				first_name,
+				middle_name,
+				last_name,
+				job_user_jobTojob,
+				user_role_user_user_roleTouser_role,
+			} = result;
 			const authenticated: boolean = bcrypt.compareSync(password, pass_digest);
 			return {
 				status: authenticated, //true if authenticated, false if not authenticated
-				full_name: full_name, // will always return the full name
-				user_id: user_id, // will always return the user_id
-				users_ind: ind, // will always return the users_ind
-				username: result.rows[0].username, // will always return the username
-				user_role: user_role,
-				job: job,
+				full_name: `${first_name} ${middle_name} ${last_name}`, // will always return the full name
+				user_ind: ind, // will always return the user_id
+				username: result.username, // will always return the username
+				user_role: job_user_jobTojob?.job_name,
+				job: user_role_user_user_roleTouser_role?.role_name,
 			};
 		}
 	} catch (error) {
@@ -317,11 +421,8 @@ export async function authenticate(
 		return {
 			status: false,
 			full_name: '',
-			user_id: '',
 			username: username,
-			users_ind: null,
+			user_ind: null,
 		};
 	}
 }
-
-// ------ ! -------- End of authentication service functions ------ ! --------

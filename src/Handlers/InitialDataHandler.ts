@@ -11,6 +11,7 @@ const getInitialDataHandler = async (req: Request, res: Response) => {
 	const newToken = req.body.token || '';
 	try {
 		const getInitalData = await getInitialData();
+		console.log(getInitalData);
 		if (!getInitalData.err) {
 			sendSuccessfulResponse(res, newToken, getInitalData.initialData, 1);
 		} else {
