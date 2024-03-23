@@ -1,0 +1,1023 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table bills {
+  ind Int [pk, increment]
+  bill_id Int [unique]
+  payment_category_ind Int
+  total_exclusive Float
+  vat_tax Float
+  other_tax Float
+  total_inclusive Float
+  discount Float
+  net_to_pay Float
+  payement_due DateTime
+  payed_at DateTime
+  issued_by Int
+  revised_by Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_bills_created_byTouser user
+  user_bills_issued_byTouser user
+  payment_category payment_category
+  user_bills_revised_byTouser user
+  user_bills_updated_byTouser user
+  transactions transactions [not null]
+  lab_order lab_order [not null]
+  radiology_order radiology_order [not null]
+}
+
+Table payment_category {
+  ind Int [pk, increment]
+  payment_id Int [unique]
+  payment_name String
+  account String
+  max_coverage_limit Int
+  payment_range_in_days Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  bills bills [not null]
+  user_payment_category_created_byTouser user
+  user_payment_category_updated_byTouser user
+  personal_personal_payment_categoryTopayment_category personal [not null]
+}
+
+Table transactions {
+  ind Int [pk, increment]
+  transaction_name String
+  transaction_at DateTime
+  bill_ind Int
+  issued_by Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  bills bills
+  user_transactions_created_byTouser user
+  user_transactions_issued_byTouser user
+  user_transactions_updated_byTouser user
+}
+
+Table categories {
+  ind Int [pk, increment]
+  inv_category_id String [unique]
+  category_name String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_categories_created_byTouser user
+  user_categories_updated_byTouser user
+}
+
+Table item_movement {
+  ind Int [pk, increment]
+  item_ind Int
+  amount Int
+  movement_date String
+  movement_status String
+  moved_from String
+  moved_to String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_item_movement_created_byTouser user
+  material material
+  user_item_movement_updated_byTouser user
+}
+
+Table material {
+  ind Int [pk, increment]
+  material_id String [unique]
+  sku String
+  item_name String
+  category Int
+  store_id Int
+  price Float
+  stock Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  item_movement item_movement [not null]
+  store_material_categoryTostore store
+  user_material_created_byTouser user
+  store_material_store_idTostore store
+  user_material_updated_byTouser user
+}
+
+Table store {
+  ind Int [pk, increment]
+  store_id String [unique]
+  store_name String
+  store_location String
+  trustee Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  material_material_categoryTostore material [not null]
+  material_material_store_idTostore material [not null]
+  user_store_created_byTouser user
+  user_store_trusteeTouser user
+  user_store_updated_byTouser user
+}
+
+Table external_lab {
+  ind Int [pk, increment]
+  ext_lab_id Int [unique]
+  lab_name String
+  full_address String
+  city String
+  country String
+  district String
+  primary_contact String
+  secondary_contact String
+  emergency_contact String
+  email String
+  result_range_in_hours Int
+  payment_range_in_days Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_external_lab_created_byTouser user
+  user_external_lab_updated_byTouser user
+  external_lab_test external_lab_test [not null]
+  lab_order lab_order [not null]
+}
+
+Table external_lab_test {
+  ind Int [pk, increment]
+  test_ind Int
+  external_lab_id Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_external_lab_test_created_byTouser user
+  external_lab external_lab
+  test test
+  user_external_lab_test_updated_byTouser user
+}
+
+Table lab_order {
+  ind Int [pk, increment]
+  lab_order_id String [unique]
+  patient_ind Int
+  test_ind Int
+  request_date DateTime
+  o_status String
+  o_date DateTime
+  start_time DateTime
+  end_time DateTime
+  bill_ind Int
+  test_location Int
+  chemist Int
+  pathologist Int
+  referring_phys Int
+  report_status String
+  critical String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  bills bills
+  user_lab_order_chemistTouser user
+  user_lab_order_created_byTouser user
+  user_lab_order_pathologistTouser user
+  personal personal
+  user_lab_order_referring_physTouser user
+  test test
+  external_lab external_lab
+  user_lab_order_updated_byTouser user
+  lab_order_document lab_order_document [not null]
+}
+
+Table lab_order_document {
+  ind Int [pk, increment]
+  order_ind Int
+  document_name String [default: 'Report']
+  document_description String
+  document_file_path String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_lab_order_document_created_byTouser user
+  lab_order lab_order
+  user_lab_order_document_updated_byTouser user
+}
+
+Table test {
+  ind Int [pk, increment]
+  test_id String [unique]
+  category String
+  test_name String
+  arabic_name String
+  price Float
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  external_lab_test external_lab_test [not null]
+  lab_order lab_order [not null]
+  user_test_created_byTouser user
+  user_test_updated_byTouser user
+  proc_lab proc_lab [not null]
+}
+
+Table chronic_diseases_list {
+  ind Int [pk, increment]
+  disease_name String [unique, not null]
+  organ String
+  system_affected String
+  disease_noted String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_chronic_diseases_list_created_byTouser user
+  user_chronic_diseases_list_updated_byTouser user
+  patient_chronic_diseases patient_chronic_diseases [not null]
+}
+
+Table clinical {
+  ind Int [pk, increment]
+  patient_ind Int
+  dm Int
+  htn Int
+  smoking Boolean
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_clinical_created_byTouser user
+  diabetes_description diabetes_description
+  hypertension_description hypertension_description
+  personal personal
+  user_clinical_updated_byTouser user
+}
+
+Table diabetes_description {
+  ind Int [pk, increment]
+  max_fasting Int
+  min_fasting Int
+  max_post_prandial Int
+  min_post_prandial Int
+  max_hba1c Float
+  min_hba1c Float
+  retina String
+  kidney String
+  coronaries String
+  cerebral String
+  neuropathy String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  clinical clinical [not null]
+  user_diabetes_description_created_byTouser user
+  user_diabetes_description_updated_byTouser user
+}
+
+Table hypertension_description {
+  ind Int [pk, increment]
+  max_systolic Int
+  min_diastolic Int
+  retina String
+  kidney String
+  coronaries String
+  cerebral String
+  neuropathy String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  clinical clinical [not null]
+  user_hypertension_description_created_byTouser user
+  user_hypertension_description_updated_byTouser user
+}
+
+Table liver_condition {
+  ind Int [pk, increment]
+  patient_ind Int
+  condition_date DateTime
+  hcv_infection Boolean
+  hcv_ag Boolean
+  hcv_ab Boolean
+  hcv_ttt String
+  hbv_infection Boolean
+  hbv_ag Boolean
+  hbv_ab Boolean
+  hbv_ttt String
+  albumin Float
+  ast Int
+  alt Int
+  total_bilirubin Float
+  direct_bilirubin Float
+  inr Float
+  ascites String
+  child_score Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_liver_condition_created_byTouser user
+  personal personal
+  user_liver_condition_updated_byTouser user
+}
+
+Table patient_chronic_diseases {
+  ind Int [pk, increment]
+  patient_ind Int [not null]
+  disease_ind Int [not null]
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patient_chronic_diseases_created_byTouser user
+  chronic_diseases_list chronic_diseases_list [not null]
+  personal personal [not null]
+  user_patient_chronic_diseases_updated_byTouser user
+}
+
+Table patient_contacts {
+  ind Int [pk, increment]
+  patient_ind Int
+  contact_description String
+  contact_value String
+  contact_notes String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patient_contacts_created_byTouser user
+  personal personal
+  user_patient_contacts_updated_byTouser user
+}
+
+Table patient_imaging {
+  ind Int [pk, increment]
+  patient_ind Int
+  study_date DateTime
+  study_name String
+  result_key_value Json
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patient_imaging_created_byTouser user
+  personal personal
+  user_patient_imaging_updated_byTouser user
+}
+
+Table patient_intervention {
+  ind Int [pk, increment]
+  patient_ind Int
+  intervention_name String [not null]
+  intervention_date DateTime
+  complications String
+  done_by String
+  done_at String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patient_intervention_created_byTouser user
+  personal personal
+  user_patient_intervention_updated_byTouser user
+}
+
+Table patient_investigation {
+  ind Int [pk, increment]
+  patient_ind Int
+  investigation_date DateTime
+  investigation_name String [not null]
+  result_key_value Json
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patient_investigation_created_byTouser user
+  personal personal
+  user_patient_investigation_updated_byTouser user
+}
+
+Table patient_laboratory {
+  ind Int [pk, increment]
+  patient_ind Int
+  lab_date DateTime
+  test_name String
+  result_key_value Json
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patient_laboratory_created_byTouser user
+  personal personal
+  user_patient_laboratory_updated_byTouser user
+}
+
+Table patients_paperwork {
+  ind Int [pk, increment]
+  patient_ind Int
+  document_description String
+  document_date String
+  submit_date String
+  document_file_path String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_patients_paperwork_created_byTouser user
+  personal personal
+  user_patients_paperwork_updated_byTouser user
+}
+
+Table personal {
+  ind Int [pk, increment]
+  mrn String [unique]
+  personal_id String [unique]
+  first_name String
+  middle_name String
+  last_name String
+  dob DateTime
+  gender String
+  payment_category Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  lab_order lab_order [not null]
+  clinical clinical [not null]
+  liver_condition liver_condition [not null]
+  patient_chronic_diseases patient_chronic_diseases [not null]
+  patient_contacts patient_contacts [not null]
+  patient_imaging patient_imaging [not null]
+  patient_intervention patient_intervention [not null]
+  patient_investigation patient_investigation [not null]
+  patient_laboratory patient_laboratory [not null]
+  patients_paperwork patients_paperwork [not null]
+  user_personal_created_byTouser user
+  payment_category_personal_payment_categoryTopayment_category payment_category
+  user_personal_updated_byTouser user
+  radiology_order radiology_order [not null]
+}
+
+Table proc {
+  ind Int [pk, increment]
+  proc_id String [unique]
+  proc_name String
+  price Float
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_proc_created_byTouser user
+  user_proc_updated_byTouser user
+  proc_imaging proc_imaging [not null]
+  proc_lab proc_lab [not null]
+  proc_paperwork proc_paperwork [not null]
+}
+
+Table proc_imaging {
+  ind Int [pk, increment]
+  procedure_ind Int
+  study_ind Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_proc_imaging_created_byTouser user
+  proc proc
+  study study
+  user_proc_imaging_updated_byTouser user
+}
+
+Table proc_lab {
+  ind Int [pk, increment]
+  procedure_ind Int
+  test_id Int
+  max_limit Float
+  min_limit Float
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_proc_lab_created_byTouser user
+  proc proc
+  test test
+  user_proc_lab_updated_byTouser user
+}
+
+Table proc_paperwork {
+  ind Int [pk, increment]
+  procedure_ind Int
+  document_name Int
+  document_description String
+  document_file_path String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_proc_paperwork_created_byTouser user
+  proc proc
+  user_proc_paperwork_updated_byTouser user
+}
+
+Table rad_order_document {
+  ind Int [pk, increment]
+  order_ind Int
+  document_name String [default: 'Report']
+  document_description String
+  document_file_path String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_rad_order_document_created_byTouser user
+  radiology_order radiology_order
+  user_rad_order_document_updated_byTouser user
+}
+
+Table radiology_order {
+  ind Int [pk, increment]
+  rad_order_id String [unique]
+  patient_ind Int
+  study_ind Int
+  technician Int
+  radiologist Int
+  referring_phys Int
+  o_status String
+  request_date DateTime
+  o_date DateTime
+  start_time DateTime
+  end_time DateTime
+  bill_ind Int
+  report_status String
+  cancelled_notes String
+  critical String
+  radiation_dose Float
+  study_instance_uid String [unique]
+  series_count Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  rad_order_document rad_order_document [not null]
+  bills bills
+  user_radiology_order_created_byTouser user
+  personal personal
+  user_radiology_order_radiologistTouser user
+  user_radiology_order_referring_physTouser user
+  study study
+  user_radiology_order_technicianTouser user
+  user_radiology_order_updated_byTouser user
+}
+
+Table study {
+  ind Int [pk, increment]
+  study_id String [unique]
+  modality String
+  study_name String
+  arabic_name String
+  price Float
+  study_preparation Int
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  proc_imaging proc_imaging [not null]
+  radiology_order radiology_order [not null]
+  user_study_created_byTouser user
+  study_preparation_study_study_preparationTostudy_preparation study_preparation
+  user_study_updated_byTouser user
+}
+
+Table study_preparation {
+  ind Int [pk, increment]
+  hint_text String
+  document_file_path String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  study_study_study_preparationTostudy_preparation study [not null]
+  user_study_preparation_created_byTouser user
+  user_study_preparation_updated_byTouser user
+}
+
+Table job {
+  ind Int [pk, increment]
+  job_id Int [unique]
+  job_name String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  user_user_jobTojob user [not null]
+}
+
+Table qualification_categories {
+  ind Int [pk, increment]
+  category_name String [unique]
+  category_description String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_qualification_categories_created_byTouser user
+  user_qualification_categories_updated_byTouser user
+  qualifications qualifications [not null]
+}
+
+Table qualifications {
+  ind Int [pk, increment]
+  qualification_category_ind Int
+  user_ind Int
+  qualification_description String
+  document_url String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_qualifications_created_byTouser user
+  qualification_categories qualification_categories
+  user_qualifications_updated_byTouser user
+  user_qualifications_user_indTouser user
+}
+
+Table user {
+  ind Int [pk, increment]
+  username String [unique]
+  first_name String
+  middle_name String
+  last_name String
+  dob String
+  user_password String
+  user_role Int
+  job Int
+  user_config Json
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  bills_bills_created_byTouser bills [not null]
+  bills_bills_issued_byTouser bills [not null]
+  bills_bills_revised_byTouser bills [not null]
+  bills_bills_updated_byTouser bills [not null]
+  payment_category_payment_category_created_byTouser payment_category [not null]
+  payment_category_payment_category_updated_byTouser payment_category [not null]
+  transactions_transactions_created_byTouser transactions [not null]
+  transactions_transactions_issued_byTouser transactions [not null]
+  transactions_transactions_updated_byTouser transactions [not null]
+  categories_categories_created_byTouser categories [not null]
+  categories_categories_updated_byTouser categories [not null]
+  item_movement_item_movement_created_byTouser item_movement [not null]
+  item_movement_item_movement_updated_byTouser item_movement [not null]
+  material_material_created_byTouser material [not null]
+  material_material_updated_byTouser material [not null]
+  store_store_created_byTouser store [not null]
+  store_store_trusteeTouser store [not null]
+  store_store_updated_byTouser store [not null]
+  external_lab_external_lab_created_byTouser external_lab [not null]
+  external_lab_external_lab_updated_byTouser external_lab [not null]
+  external_lab_test_external_lab_test_created_byTouser external_lab_test [not null]
+  external_lab_test_external_lab_test_updated_byTouser external_lab_test [not null]
+  lab_order_lab_order_chemistTouser lab_order [not null]
+  lab_order_lab_order_created_byTouser lab_order [not null]
+  lab_order_lab_order_pathologistTouser lab_order [not null]
+  lab_order_lab_order_referring_physTouser lab_order [not null]
+  lab_order_lab_order_updated_byTouser lab_order [not null]
+  lab_order_document_lab_order_document_created_byTouser lab_order_document [not null]
+  lab_order_document_lab_order_document_updated_byTouser lab_order_document [not null]
+  test_test_created_byTouser test [not null]
+  test_test_updated_byTouser test [not null]
+  chronic_diseases_list_chronic_diseases_list_created_byTouser chronic_diseases_list [not null]
+  chronic_diseases_list_chronic_diseases_list_updated_byTouser chronic_diseases_list [not null]
+  clinical_clinical_created_byTouser clinical [not null]
+  clinical_clinical_updated_byTouser clinical [not null]
+  diabetes_description_diabetes_description_created_byTouser diabetes_description [not null]
+  diabetes_description_diabetes_description_updated_byTouser diabetes_description [not null]
+  hypertension_description_hypertension_description_created_byTouser hypertension_description [not null]
+  hypertension_description_hypertension_description_updated_byTouser hypertension_description [not null]
+  liver_condition_liver_condition_created_byTouser liver_condition [not null]
+  liver_condition_liver_condition_updated_byTouser liver_condition [not null]
+  patient_chronic_diseases_patient_chronic_diseases_created_byTouser patient_chronic_diseases [not null]
+  patient_chronic_diseases_patient_chronic_diseases_updated_byTouser patient_chronic_diseases [not null]
+  patient_contacts_patient_contacts_created_byTouser patient_contacts [not null]
+  patient_contacts_patient_contacts_updated_byTouser patient_contacts [not null]
+  patient_imaging_patient_imaging_created_byTouser patient_imaging [not null]
+  patient_imaging_patient_imaging_updated_byTouser patient_imaging [not null]
+  patient_intervention_patient_intervention_created_byTouser patient_intervention [not null]
+  patient_intervention_patient_intervention_updated_byTouser patient_intervention [not null]
+  patient_investigation_patient_investigation_created_byTouser patient_investigation [not null]
+  patient_investigation_patient_investigation_updated_byTouser patient_investigation [not null]
+  patient_laboratory_patient_laboratory_created_byTouser patient_laboratory [not null]
+  patient_laboratory_patient_laboratory_updated_byTouser patient_laboratory [not null]
+  patients_paperwork_patients_paperwork_created_byTouser patients_paperwork [not null]
+  patients_paperwork_patients_paperwork_updated_byTouser patients_paperwork [not null]
+  personal_personal_created_byTouser personal [not null]
+  personal_personal_updated_byTouser personal [not null]
+  proc_proc_created_byTouser proc [not null]
+  proc_proc_updated_byTouser proc [not null]
+  proc_imaging_proc_imaging_created_byTouser proc_imaging [not null]
+  proc_imaging_proc_imaging_updated_byTouser proc_imaging [not null]
+  proc_lab_proc_lab_created_byTouser proc_lab [not null]
+  proc_lab_proc_lab_updated_byTouser proc_lab [not null]
+  proc_paperwork_proc_paperwork_created_byTouser proc_paperwork [not null]
+  proc_paperwork_proc_paperwork_updated_byTouser proc_paperwork [not null]
+  rad_order_document_rad_order_document_created_byTouser rad_order_document [not null]
+  rad_order_document_rad_order_document_updated_byTouser rad_order_document [not null]
+  radiology_order_radiology_order_created_byTouser radiology_order [not null]
+  radiology_order_radiology_order_radiologistTouser radiology_order [not null]
+  radiology_order_radiology_order_referring_physTouser radiology_order [not null]
+  radiology_order_radiology_order_technicianTouser radiology_order [not null]
+  radiology_order_radiology_order_updated_byTouser radiology_order [not null]
+  study_study_created_byTouser study [not null]
+  study_study_updated_byTouser study [not null]
+  study_preparation_study_preparation_created_byTouser study_preparation [not null]
+  study_preparation_study_preparation_updated_byTouser study_preparation [not null]
+  qualification_categories_qualification_categories_created_byTouser qualification_categories [not null]
+  qualification_categories_qualification_categories_updated_byTouser qualification_categories [not null]
+  qualifications_qualifications_created_byTouser qualifications [not null]
+  qualifications_qualifications_updated_byTouser qualifications [not null]
+  qualifications_qualifications_user_indTouser qualifications [not null]
+  job_user_jobTojob job
+  user_role_user_user_roleTouser_role user_role
+  user_contact_user_contact_created_byTouser user_contact [not null]
+  user_contact_user_contact_updated_byTouser user_contact [not null]
+  user_contact_user_contact_user_indTouser user_contact [not null]
+}
+
+Table user_contact {
+  ind Int [pk, increment]
+  user_ind Int
+  contact_description String
+  contact_value String
+  contact_notes String
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  created_by Int
+  updated_by Int
+  user_user_contact_created_byTouser user
+  user_user_contact_updated_byTouser user
+  user_user_contact_user_indTouser user
+}
+
+Table user_role {
+  ind Int [pk, increment]
+  role_id Int [unique]
+  role_name String
+  role_privileges Json
+  created_at DateTime [default: `now()`]
+  updated_at DateTime [default: `now()`]
+  user_user_user_roleTouser_role user [not null]
+}
+
+Ref: bills.created_by > user.ind [delete: No Action]
+
+Ref: bills.issued_by > user.ind [delete: No Action]
+
+Ref: bills.payment_category_ind > payment_category.ind [delete: No Action]
+
+Ref: bills.revised_by > user.ind [delete: No Action]
+
+Ref: bills.updated_by > user.ind [delete: No Action]
+
+Ref: payment_category.created_by > user.ind [delete: No Action]
+
+Ref: payment_category.updated_by > user.ind [delete: No Action]
+
+Ref: transactions.bill_ind > bills.ind [delete: No Action]
+
+Ref: transactions.created_by > user.ind [delete: No Action]
+
+Ref: transactions.issued_by > user.ind [delete: No Action]
+
+Ref: transactions.updated_by > user.ind [delete: No Action]
+
+Ref: categories.created_by > user.ind [delete: No Action]
+
+Ref: categories.updated_by > user.ind [delete: No Action]
+
+Ref: item_movement.created_by > user.ind [delete: No Action]
+
+Ref: item_movement.item_ind > material.ind [delete: No Action]
+
+Ref: item_movement.updated_by > user.ind [delete: No Action]
+
+Ref: material.category > store.ind [delete: Cascade]
+
+Ref: material.created_by > user.ind [delete: No Action]
+
+Ref: material.store_id > store.ind [delete: Cascade]
+
+Ref: material.updated_by > user.ind [delete: No Action]
+
+Ref: store.created_by > user.ind [delete: No Action]
+
+Ref: store.trustee > user.ind [delete: No Action]
+
+Ref: store.updated_by > user.ind [delete: No Action]
+
+Ref: external_lab.created_by > user.ind [delete: No Action]
+
+Ref: external_lab.updated_by > user.ind [delete: No Action]
+
+Ref: external_lab_test.created_by > user.ind [delete: No Action]
+
+Ref: external_lab_test.external_lab_id > external_lab.ind [delete: Cascade]
+
+Ref: external_lab_test.test_ind > test.ind [delete: Cascade]
+
+Ref: external_lab_test.updated_by > user.ind [delete: No Action]
+
+Ref: lab_order.bill_ind > bills.ind [delete: No Action]
+
+Ref: lab_order.chemist > user.ind [delete: No Action]
+
+Ref: lab_order.created_by > user.ind [delete: No Action]
+
+Ref: lab_order.pathologist > user.ind [delete: No Action]
+
+Ref: lab_order.patient_ind > personal.ind [delete: Cascade]
+
+Ref: lab_order.referring_phys > user.ind [delete: No Action]
+
+Ref: lab_order.test_ind > test.ind [delete: Cascade]
+
+Ref: lab_order.test_location > external_lab.ind [delete: Cascade]
+
+Ref: lab_order.updated_by > user.ind [delete: No Action]
+
+Ref: lab_order_document.created_by > user.ind [delete: No Action]
+
+Ref: lab_order_document.order_ind > lab_order.ind [delete: No Action]
+
+Ref: lab_order_document.updated_by > user.ind [delete: No Action]
+
+Ref: test.created_by > user.ind [delete: No Action]
+
+Ref: test.updated_by > user.ind [delete: No Action]
+
+Ref: chronic_diseases_list.created_by > user.ind [delete: No Action]
+
+Ref: chronic_diseases_list.updated_by > user.ind [delete: No Action]
+
+Ref: clinical.created_by > user.ind [delete: No Action]
+
+Ref: clinical.dm > diabetes_description.ind [delete: Cascade]
+
+Ref: clinical.htn > hypertension_description.ind [delete: Cascade]
+
+Ref: clinical.patient_ind > personal.ind [delete: Cascade]
+
+Ref: clinical.updated_by > user.ind [delete: No Action]
+
+Ref: diabetes_description.created_by > user.ind [delete: No Action]
+
+Ref: diabetes_description.updated_by > user.ind [delete: No Action]
+
+Ref: hypertension_description.created_by > user.ind [delete: No Action]
+
+Ref: hypertension_description.updated_by > user.ind [delete: No Action]
+
+Ref: liver_condition.created_by > user.ind [delete: No Action]
+
+Ref: liver_condition.patient_ind > personal.ind [delete: Cascade]
+
+Ref: liver_condition.updated_by > user.ind [delete: No Action]
+
+Ref: patient_chronic_diseases.created_by > user.ind [delete: No Action]
+
+Ref: patient_chronic_diseases.disease_ind > chronic_diseases_list.ind [delete: Cascade]
+
+Ref: patient_chronic_diseases.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patient_chronic_diseases.updated_by > user.ind [delete: No Action]
+
+Ref: patient_contacts.created_by > user.ind [delete: No Action]
+
+Ref: patient_contacts.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patient_contacts.updated_by > user.ind [delete: No Action]
+
+Ref: patient_imaging.created_by > user.ind [delete: No Action]
+
+Ref: patient_imaging.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patient_imaging.updated_by > user.ind [delete: No Action]
+
+Ref: patient_intervention.created_by > user.ind [delete: No Action]
+
+Ref: patient_intervention.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patient_intervention.updated_by > user.ind [delete: No Action]
+
+Ref: patient_investigation.created_by > user.ind [delete: No Action]
+
+Ref: patient_investigation.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patient_investigation.updated_by > user.ind [delete: No Action]
+
+Ref: patient_laboratory.created_by > user.ind [delete: No Action]
+
+Ref: patient_laboratory.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patient_laboratory.updated_by > user.ind [delete: No Action]
+
+Ref: patients_paperwork.created_by > user.ind [delete: No Action]
+
+Ref: patients_paperwork.patient_ind > personal.ind [delete: Cascade]
+
+Ref: patients_paperwork.updated_by > user.ind [delete: No Action]
+
+Ref: personal.created_by > user.ind [delete: No Action]
+
+Ref: personal.payment_category > payment_category.ind [delete: Cascade]
+
+Ref: personal.updated_by > user.ind [delete: No Action]
+
+Ref: proc.created_by > user.ind [delete: No Action]
+
+Ref: proc.updated_by > user.ind [delete: No Action]
+
+Ref: proc_imaging.created_by > user.ind [delete: No Action]
+
+Ref: proc_imaging.procedure_ind > proc.ind [delete: Cascade]
+
+Ref: proc_imaging.study_ind > study.ind [delete: Cascade]
+
+Ref: proc_imaging.updated_by > user.ind [delete: No Action]
+
+Ref: proc_lab.created_by > user.ind [delete: No Action]
+
+Ref: proc_lab.procedure_ind > proc.ind [delete: Cascade]
+
+Ref: proc_lab.test_id > test.ind [delete: Cascade]
+
+Ref: proc_lab.updated_by > user.ind [delete: No Action]
+
+Ref: proc_paperwork.created_by > user.ind [delete: No Action]
+
+Ref: proc_paperwork.procedure_ind > proc.ind [delete: Cascade]
+
+Ref: proc_paperwork.updated_by > user.ind [delete: No Action]
+
+Ref: rad_order_document.created_by > user.ind [delete: No Action]
+
+Ref: rad_order_document.order_ind > radiology_order.ind [delete: No Action]
+
+Ref: rad_order_document.updated_by > user.ind [delete: No Action]
+
+Ref: radiology_order.bill_ind > bills.ind [delete: No Action]
+
+Ref: radiology_order.created_by > user.ind [delete: No Action]
+
+Ref: radiology_order.patient_ind > personal.ind [delete: Cascade]
+
+Ref: radiology_order.radiologist > user.ind [delete: No Action]
+
+Ref: radiology_order.referring_phys > user.ind [delete: No Action]
+
+Ref: radiology_order.study_ind > study.ind [delete: No Action]
+
+Ref: radiology_order.technician > user.ind [delete: No Action]
+
+Ref: radiology_order.updated_by > user.ind [delete: No Action]
+
+Ref: study.created_by > user.ind [delete: No Action]
+
+Ref: study.study_preparation > study_preparation.ind [delete: Cascade]
+
+Ref: study.updated_by > user.ind [delete: No Action]
+
+Ref: study_preparation.created_by > user.ind [delete: No Action]
+
+Ref: study_preparation.updated_by > user.ind [delete: No Action]
+
+Ref: qualification_categories.created_by > user.ind [delete: No Action]
+
+Ref: qualification_categories.updated_by > user.ind [delete: No Action]
+
+Ref: qualifications.created_by > user.ind [delete: No Action]
+
+Ref: qualifications.qualification_category_ind > qualification_categories.ind [delete: No Action]
+
+Ref: qualifications.updated_by > user.ind [delete: No Action]
+
+Ref: qualifications.user_ind > user.ind [delete: No Action]
+
+Ref: user.job > job.ind [delete: No Action]
+
+Ref: user.user_role > user_role.ind [delete: No Action]
+
+Ref: user_contact.created_by > user.ind [delete: No Action]
+
+Ref: user_contact.updated_by > user.ind [delete: No Action]
+
+Ref: user_contact.user_ind > user.ind [delete: No Action]

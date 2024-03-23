@@ -12,7 +12,15 @@ datasource db {
 generator markdown {
   provider = "prisma-markdown"
   output   = "./ERD.md"
-  title    = "Shopping Mall"
+  title    = "HIS-Rad Assist Database"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+generator class_validator {
+  provider = "prisma-class-validator-generator"
 }
 
 model bills {
