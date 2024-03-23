@@ -17,6 +17,7 @@ import { text } from 'body-parser';
 import { logError } from '../../helpers/errorLogging';
 import getPGClient from '../../getPGClient';
 import { prisma_user } from '../../prisma/exportPrismaModels';
+import { user } from '../../prisma/generated/models';
 
 const tokenSecret = setupData.JWT_access_secret;
 
@@ -96,7 +97,6 @@ export const registeruser_prisma = async (
 ): Promise<User> => {
 	try {
 		const tableName = 'users';
-
 		const hashedPassword =
 			reqBody.users.user_password &&
 			bcrypt.hashSync(reqBody.users.user_password, genSaltSync());
